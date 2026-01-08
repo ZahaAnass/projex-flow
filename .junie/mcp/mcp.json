@@ -1,0 +1,11 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "/usr/bin/php",
+            "args": [
+                "/home/anass/Desktop/github repo/projex-flow/artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}
