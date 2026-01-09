@@ -5,8 +5,10 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 // Controllers
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TeamLeader\TeamProjectController;
 use App\Http\Controllers\TeamLeader\TeamTaskController;
 use App\Http\Controllers\Client\ClientProjectController;
@@ -46,9 +48,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
 
         // Auth as admin (logical separation)
-        Route::get('/dashboard', fn () =>
-        Inertia::render('Admin/Dashboard')
-        )->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         // Manage users
         Route::resource('users', UserController::class);
@@ -59,10 +59,8 @@ Route::middleware(['auth'])->group(function () {
         // Manage all tasks
         Route::resource('tasks', TaskController::class);
 
-        // Manage roles (simple)
-        Route::get('/roles', fn () =>
-        Inertia::render('Admin/Roles')
-        )->name('roles');
+        // Manage roles
+        Route::get('/roles', [RoleController::class, 'index'])->name('roles');
     });
 
     /*

@@ -2,16 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Task;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class TaskController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $query = Task::query()->with(['project', 'assignee']);
+
+        if ($request->search) {
+            $query->where('title', 'like', '%'.$request->search.'%');
+        }
+
+        return Inertia::render('Admin/Tasks/Index', [
+            'tasks' => $query->latest()->paginate(10)->withQueryString(),
+            'filters' => $request->only(['search']),
+        ]);
     }
 
     /**

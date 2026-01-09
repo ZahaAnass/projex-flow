@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('project_id')->constrained()->onDelete('cascade');
             $table->foreignId('assigned_to')->nullable()->constrained('users');
             $table->string('title');
+            $table->text('description')->nullable();
             $table->string('priority')->default('medium'); // low, medium, high
             $table->string('status')->default('todo'); // todo, in_progress, done
             $table->timestamps();

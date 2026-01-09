@@ -2,16 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Project;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ProjectController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $query = Project::query()->with('owner'); // Assuming relation is 'owner' or 'creator'
+
+        if ($request->search) {
+            $query->where('name', 'like', '%'.$request->search.'%');
+        }
+
+        if ($request->status && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        return Inertia::render('Admin/Projects/Index', [
+            'projects' => $query->latest()->paginate(10)->withQueryString(),
+            'filters' => $request->only(['search', 'status']),
+        ]);
     }
 
     /**
