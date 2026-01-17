@@ -47,7 +47,7 @@ Route::middleware(['auth'])->group(function () {
     */
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
 
-        // Auth as admin (logical separation)
+        // Auth as admin
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         // Manage users

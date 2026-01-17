@@ -1,6 +1,6 @@
 import AppLayout from "@/layouts/app-layout";
-import { Head, router } from "@inertiajs/react";
-import { useRef } from "react";
+import { Head, Link, router, usePage } from "@inertiajs/react";
+import { useEffect, useRef } from "react";
 import { debounce } from "lodash";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,33 +10,78 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { BreadcrumbItem } from '@/types';
+import InertiaPagination from "@/components/inertia-pagination";
+import { toast } from "sonner";
+import DeleteDialog from "@/components/delete-dialog";
+
+// Types
+type LaravelPagination<T> = {
+    data: T[];
+    links: { url: string | null; label: string; active: boolean }[];
+    from: number | null;
+    to: number | null;
+    total: number;
+    prev_page_url: string | null;
+    next_page_url: string | null;
+};
+
+type User = {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+};
+
+type Props = {
+    users: LaravelPagination<User>;
+    filters: {
+        search?: string;
+        role?: string;
+    };
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Admin',
-        href: '/admin/dashboard',
-    },
-    {
-        title: 'Users',
-        href: '/admin/users',
-    }
+    { title: 'Admin', href: '/admin/dashboard' },
+    { title: 'Users', href: '/admin/users' },
 ];
 
-export default function UsersIndex({ users, filters }: any) {
+export default function UsersIndex({ users, filters }: Props) {
+    // 1. Get Flash messages from Inertia
+    const { flash } = usePage<{ flash: { success?: string; error?: string } }>().props;
 
-    // Search Handler
+    // 2. Search Handler
     const handleSearch = useRef(debounce((q: string) => {
         router.get("/admin/users", { ...filters, search: q }, { preserveState: true, replace: true });
     }, 500)).current;
 
+    // 3. Toast Effect
+    useEffect(() => {
+        if (flash.success) {
+            toast.success(flash.success);
+        }
+        if (flash.error) {
+            toast.error(flash.error);
+        }
+    }, [flash]);
+
+    // 4. Delete Handler
+    function deleteUser(id: number) {
+        router.delete(`/admin/users/${id}`, {
+            preserveScroll: true,
+        });
+    }
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Manage Users" />
-            <div className="p-4">
-                <Card className="border border-sidebar-border/70">
-                    <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
+            <div className="p-4 space-y-4">
+
+                {/* Filters Card */}
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap p-6">
                         <div className="flex gap-4 items-center flex-1">
-                            <div className="relative w-64">
+                            {/* Search */}
+                            <div className="relative w-full sm:w-64">
                                 <Input
                                     defaultValue={filters.search ?? ""}
                                     onChange={(e) => handleSearch(e.target.value)}
@@ -48,11 +93,14 @@ export default function UsersIndex({ users, filters }: any) {
                                 </div>
                             </div>
 
+                            {/* Role Filter */}
                             <Select
                                 defaultValue={filters.role ?? "all"}
                                 onValueChange={(v) => router.get("/admin/users", { ...filters, role: v === "all" ? null : v }, { preserveState: true, replace: true })}
                             >
-                                <SelectTrigger className="w-40"><SelectValue placeholder="All Roles" /></SelectTrigger>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Filter by Role" />
+                                </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Roles</SelectItem>
                                     <SelectItem value="admin">Admin</SelectItem>
@@ -62,44 +110,73 @@ export default function UsersIndex({ users, filters }: any) {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <Button>+ Add User</Button>
-                    </CardHeader>
 
-                    <CardContent>
-                        <div className="rounded-md border">
-                            <Table>
-                                <TableHeader>
+                        <Button asChild>
+                            <Link href={`/admin/users/create`}>+ Add User</Link>
+                        </Button>
+                    </CardHeader>
+                </Card>
+
+                {/* Users Table */}
+                <Card>
+                    <CardContent className="p-0">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="pl-6">Name</TableHead>
+                                    <TableHead>Email</TableHead>
+                                    <TableHead>Role</TableHead>
+                                    <TableHead className="text-right pr-6">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {users.data.length === 0 ? (
                                     <TableRow>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Email</TableHead>
-                                        <TableHead>Role</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
+                                        <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                                            No users found.
+                                        </TableCell>
                                     </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {users.data.map((user: any) => (
+                                ) : (
+                                    users.data.map((user) => (
                                         <TableRow key={user.id}>
-                                            <TableCell className="font-medium">{user.name}</TableCell>
+                                            <TableCell className="font-medium pl-6">{user.name}</TableCell>
                                             <TableCell>{user.email}</TableCell>
                                             <TableCell>
-                                                <Badge variant="outline" className="capitalize">{user.role.replace('_', ' ')}</Badge>
+                                                <Badge variant="outline" className="capitalize">
+                                                    {user.role.replace('_', ' ')}
+                                                </Badge>
                                             </TableCell>
-                                            <TableCell className="text-right flex justify-end gap-2">
-                                                <Button variant="ghost" size="icon"><Edit className="w-4 h-4" /></Button>
-                                                <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600"><Trash2 className="w-4 h-4" /></Button>
+                                            <TableCell className="text-right pr-6">
+                                                <div className="flex justify-end gap-2">
+                                                    <Button variant="ghost" size="icon" asChild>
+                                                        <Link href={`/admin/users/${user.id}/edit`}>
+                                                            <Edit className="w-4 h-4 text-muted-foreground" />
+                                                        </Link>
+                                                    </Button>
+
+                                                    <DeleteDialog
+                                                        title="Delete User"
+                                                        description={`Are you sure you want to delete ${user.name}?`}
+                                                        onConfirm={() => deleteUser(user.id)}
+                                                    >
+                                                        <Button variant="ghost" size="icon" className="hover:bg-red-50 hover:text-red-600">
+                                                            <Trash2 className="w-4 h-4 text-red-500" />
+                                                        </Button>
+                                                    </DeleteDialog>
+                                                </div>
                                             </TableCell>
                                         </TableRow>
-                                    ))}
-                                    {users.data.length === 0 && (
-                                        <TableRow>
-                                            <TableCell colSpan={4} className="h-24 text-center">No results found.</TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </div>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
                     </CardContent>
                 </Card>
+
+                {/* Pagination */}
+                <div className="mt-4">
+                    <InertiaPagination data={users} />
+                </div>
             </div>
         </AppLayout>
     );

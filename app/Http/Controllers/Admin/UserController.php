@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreUserRequest;
+use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
 class UserController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing.
      */
     public function index(Request $request)
     {
@@ -32,50 +35,72 @@ class UserController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Show create form.
      */
     public function create()
     {
-        //
+        return Inertia::render('Admin/Users/Create');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store new user.
      */
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        //
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'role' => $request->role,
+            'password' => Hash::make($request->password),
+        ]);
+
+        return redirect()->route('admin.users.index')
+            ->with('success', 'User created successfully.');
     }
 
     /**
-     * Display the specified resource.
+     * Show edit form.
      */
-    public function show(string $id)
+    public function edit(User $user)
     {
-        //
+        return Inertia::render('Admin/Users/Edit', [
+            'user' => $user
+        ]);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Update existing user.
      */
-    public function edit(string $id)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        //
+        $data = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'role' => $request->role,
+        ];
+
+        // Only update password if provided
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $user->update($data);
+
+        return redirect()->route('admin.users.index')
+            ->with('success', 'User updated successfully.');
     }
 
     /**
-     * Update the specified resource in storage.
+     * Delete user.
      */
-    public function update(Request $request, string $id)
+    public function destroy(User $user)
     {
-        //
-    }
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'You cannot delete your own account.');
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $user->delete();
+
+        return redirect()->back()->with('success', 'User deleted successfully.');
     }
 }
