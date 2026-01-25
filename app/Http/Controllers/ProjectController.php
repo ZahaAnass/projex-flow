@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Admin\StoreProjectRequest;
+use App\Http\Requests\Admin\UpdateProjectRequest;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -9,11 +11,11 @@ use Inertia\Inertia;
 class ProjectController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing.
      */
     public function index(Request $request)
     {
-        $query = Project::query()->with('owner'); // Assuming relation is 'owner' or 'creator'
+        $query = Project::query()->with('owner');
 
         if ($request->search) {
             $query->where('name', 'like', '%'.$request->search.'%');
@@ -30,50 +32,58 @@ class ProjectController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Show create form.
      */
     public function create()
     {
-        //
+        return Inertia::render('Admin/Projects/Create');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store new project.
      */
-    public function store(Request $request)
+    public function store(StoreProjectRequest $request)
     {
-        //
+        Project::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'status' => $request->status,
+            'due_date' => $request->due_date,
+            'created_by' => auth()->id(), // Admin is the creator
+        ]);
+
+        return redirect()->route('admin.projects.index')
+            ->with('success', 'Project created successfully.');
     }
 
     /**
-     * Display the specified resource.
+     * Show edit form.
      */
-    public function show(string $id)
+    public function edit(Project $project)
     {
-        //
+        return Inertia::render('Admin/Projects/Edit', [
+            'project' => $project
+        ]);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Update project.
      */
-    public function edit(string $id)
+    public function update(UpdateProjectRequest $request, Project $project)
     {
-        //
+        $project->update($request->validated());
+
+        return redirect()->route('admin.projects.index')
+            ->with('success', 'Project updated successfully.');
     }
 
     /**
-     * Update the specified resource in storage.
+     * Delete project.
      */
-    public function update(Request $request, string $id)
+    public function destroy(Project $project)
     {
-        //
-    }
+        $project->delete();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return redirect()->back()->with('success', 'Project deleted successfully.');
     }
 }

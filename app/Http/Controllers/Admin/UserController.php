@@ -73,6 +73,7 @@ class UserController extends Controller
      */
     public function update(UpdateUserRequest $request, User $user)
     {
+
         $data = [
             'name' => $request->name,
             'email' => $request->email,
@@ -97,6 +98,10 @@ class UserController extends Controller
     {
         if ($user->id === auth()->id()) {
             return back()->with('error', 'You cannot delete your own account.');
+        }
+
+        if ($user->role === 'admin') {
+            return back()->with('error', 'Security Alert: You cannot delete other administrators.');
         }
 
         $user->delete();

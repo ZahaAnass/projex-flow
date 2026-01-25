@@ -22,7 +22,7 @@ class UpdateUserRequest extends FormRequest
                 Rule::unique('users')->ignore($this->user->id),
             ],
             'role' => ['required', 'string', 'in:admin,team_leader,user,client'],
-            'password' => ['nullable', 'confirmed', 'min:8'], // Optional on update
+            'password' => ['nullable', 'confirmed', 'min:8'],
         ];
     }
 }

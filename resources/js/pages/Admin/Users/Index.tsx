@@ -46,25 +46,33 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function UsersIndex({ users, filters }: Props) {
-    // 1. Get Flash messages from Inertia
-    const { flash } = usePage<{ flash: { success?: string; error?: string } }>().props;
+    const { flash, auth } = usePage<{
+        flash?: { success?: string; error?: string },
+        auth: { user: User }
+    }>().props;
 
-    // 2. Search Handler
+    // Search Handler
     const handleSearch = useRef(debounce((q: string) => {
         router.get("/admin/users", { ...filters, search: q }, { preserveState: true, replace: true });
     }, 500)).current;
 
-    // 3. Toast Effect
+    // Toast Effect
     useEffect(() => {
-        if (flash.success) {
-            toast.success(flash.success);
+        if (flash?.success) {
+            toast.success(flash.success, {
+                id: flash.success,
+                className: "bg-green-500 text-white border-green-600",
+            });
         }
-        if (flash.error) {
-            toast.error(flash.error);
+        if (flash?.error) {
+            toast.error(flash.error, {
+                id: flash.error,
+                className: "bg-red-500 text-white border-red-600",
+            });
         }
     }, [flash]);
 
-    // 4. Delete Handler
+    // Delete Handler
     function deleteUser(id: number) {
         router.delete(`/admin/users/${id}`, {
             preserveScroll: true,
@@ -76,11 +84,9 @@ export default function UsersIndex({ users, filters }: Props) {
             <Head title="Manage Users" />
             <div className="p-4 space-y-4">
 
-                {/* Filters Card */}
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap p-6">
                         <div className="flex gap-4 items-center flex-1">
-                            {/* Search */}
                             <div className="relative w-full sm:w-64">
                                 <Input
                                     defaultValue={filters.search ?? ""}
@@ -93,7 +99,6 @@ export default function UsersIndex({ users, filters }: Props) {
                                 </div>
                             </div>
 
-                            {/* Role Filter */}
                             <Select
                                 defaultValue={filters.role ?? "all"}
                                 onValueChange={(v) => router.get("/admin/users", { ...filters, role: v === "all" ? null : v }, { preserveState: true, replace: true })}
@@ -117,7 +122,6 @@ export default function UsersIndex({ users, filters }: Props) {
                     </CardHeader>
                 </Card>
 
-                {/* Users Table */}
                 <Card>
                     <CardContent className="p-0">
                         <Table>
@@ -154,15 +158,17 @@ export default function UsersIndex({ users, filters }: Props) {
                                                         </Link>
                                                     </Button>
 
-                                                    <DeleteDialog
-                                                        title="Delete User"
-                                                        description={`Are you sure you want to delete ${user.name}?`}
-                                                        onConfirm={() => deleteUser(user.id)}
-                                                    >
-                                                        <Button variant="ghost" size="icon" className="hover:bg-red-50 hover:text-red-600">
-                                                            <Trash2 className="w-4 h-4 text-red-500" />
-                                                        </Button>
-                                                    </DeleteDialog>
+                                                    {user.role !== 'admin' && user.id !== auth.user.id && (
+                                                        <DeleteDialog
+                                                            title="Delete User"
+                                                            description={`Are you sure you want to delete ${user.name}?`}
+                                                            onConfirm={() => deleteUser(user.id)}
+                                                        >
+                                                            <Button variant="ghost" size="icon" className="hover:bg-red-50 hover:text-red-600">
+                                                                <Trash2 className="w-4 h-4 text-red-500" />
+                                                            </Button>
+                                                        </DeleteDialog>
+                                                    )}
                                                 </div>
                                             </TableCell>
                                         </TableRow>
@@ -173,7 +179,6 @@ export default function UsersIndex({ users, filters }: Props) {
                     </CardContent>
                 </Card>
 
-                {/* Pagination */}
                 <div className="mt-4">
                     <InertiaPagination data={users} />
                 </div>
