@@ -10,6 +10,15 @@ class Task extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'project_id',
+        'assigned_to',
+        'title',
+        'description',
+        'priority',
+        'status',
+    ];
+
     protected $guarded = [];
 
     public function project(): BelongsTo

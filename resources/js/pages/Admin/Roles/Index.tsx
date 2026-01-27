@@ -86,7 +86,7 @@ export default function RolesIndex({ definitions, stats }: Props) {
                                     </div>
                                 </CardContent>
 
-                                <CardFooter className="pt-4 border-t bg-muted/20">
+                                <CardFooter className="pt-4 border-t">
                                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                         <Lock className="w-3 h-3" />
                                         <span>Static Definition</span>
