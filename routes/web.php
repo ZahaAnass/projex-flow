@@ -70,27 +70,17 @@ Route::middleware(['auth'])->group(function () {
     */
     Route::middleware('role:team_leader')->prefix('team')->name('team.')->group(function () {
 
-        // Team leader dashboard
-        Route::get('/dashboard', fn () =>
-        Inertia::render('TeamLeader/Dashboard')
-        )->name('dashboard');
+        // Dashboard
+        Route::get('/dashboard', [TeamProjectController::class, 'dashboard'])->name('dashboard');
 
-        // Manage team projects
-        Route::get('/projects', [TeamProjectController::class, 'index'])
-            ->name('projects.index');
+        // Projects (View List & Kanban Board)
+        Route::get('/projects', [TeamProjectController::class, 'index'])->name('projects.index');
+        Route::get('/projects/{project}', [TeamProjectController::class, 'show'])->name('projects.show');
 
-        // View project
-        Route::get('/projects/{project}', [TeamProjectController::class, 'show'])
-            ->name('projects.show');
-
-        // Assign tasks to members
-        Route::post('/tasks', [TeamTaskController::class, 'store'])
-            ->name('tasks.store');
-
-        // Monitor progress
-        Route::get('/tasks', [TeamTaskController::class, 'index'])
-            ->name('tasks.index');
-
+        // Tasks API (For Kanban & Creation)
+        Route::post('/tasks', [TeamTaskController::class, 'store'])->name('tasks.store');
+        Route::put('/tasks/{task}', [TeamTaskController::class, 'update'])->name('tasks.update'); // Needed for Drag & Drop
+        Route::delete('/tasks/{task}', [TeamTaskController::class, 'destroy'])->name('tasks.destroy');
     });
 
     /*

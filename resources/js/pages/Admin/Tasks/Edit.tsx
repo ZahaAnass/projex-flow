@@ -14,7 +14,17 @@ import { ArrowLeft, RefreshCw } from 'lucide-react';
 
 type Option = { id: number; name: string };
 
-export default function TaskEdit({ task, projects, users }: { task: any, projects: Option[], users: Option[] }) {
+type task = {
+    id: number;
+    project_id: number;
+    title: string;
+    description?: string;
+    priority: string;
+    status: string;
+    assigned_to?: number;
+}
+
+export default function TaskEdit({ task, projects, users }: { task: task, projects: Option[], users: Option[] }) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Admin', href: '/admin/dashboard' },
         { title: 'Tasks', href: '/admin/tasks' },
@@ -117,7 +127,7 @@ export default function TaskEdit({ task, projects, users }: { task: any, project
                                 <InputError message={errors.description} />
                             </div>
                         </CardContent>
-                        <CardFooter className="flex justify-between bg-muted/20 py-4">
+                        <CardFooter className="flex justify-between py-4">
                             <Button variant="ghost" asChild><Link href="/admin/tasks">Cancel</Link></Button>
                             <Button type="submit" disabled={processing}><RefreshCw className="mr-2 h-4 w-4" /> Update Task</Button>
                         </CardFooter>

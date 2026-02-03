@@ -117,7 +117,7 @@ export default function TaskCreate({ projects, users }: { projects: Option[], us
                                 <InputError message={errors.description} />
                             </div>
                         </CardContent>
-                        <CardFooter className="flex justify-between bg-muted/20 py-4">
+                        <CardFooter className="flex justify-between py-4">
                             <Button variant="ghost" asChild><Link href="/admin/tasks">Cancel</Link></Button>
                             <Button type="submit" disabled={processing}><Save className="mr-2 h-4 w-4" /> Create Task</Button>
                         </CardFooter>
