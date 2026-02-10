@@ -13,14 +13,18 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->uuid('uuid')->unique(); // For public URLs
+            $table->string('name'); // Nom + Prenom
             $table->string('email')->unique();
+            $table->string('phone')->nullable();
+            $table->string('status')->default('active'); // active, inactive, banned
+            $table->string('avatar_url')->nullable();
+            $table->timestamp('last_login_at')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            // Roles: 'admin', 'team_leader', 'user', 'client'
-            $table->string('role')->default('user');
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

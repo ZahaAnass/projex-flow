@@ -17,12 +17,16 @@ class ProjectFactory extends Factory
      */
     public function definition(): array
     {
+        $startDate = fake()->dateTimeBetween('-3 months', 'now');
         return [
-            'name' => fake()->bs() . ' Project',
+            'uuid' => fake()->uuid(),
+            'name' => fake()->catchPhrase(), // e.g., "Synergistic Timeline Solution"
             'description' => fake()->paragraph(),
-            'status' => fake()->randomElement(['active', 'pending', 'completed']),
-            'due_date' => fake()->dateTimeBetween('now', '+6 months'),
-            'created_by' => User::factory(),
+            'status' => fake()->randomElement(['pending', 'active', 'on_hold', 'completed']),
+            'start_date' => $startDate,
+            'end_date' => fake()->dateTimeBetween($startDate, '+6 months'),
+            // We will assign owner_id in the Seeder
+            'owner_id' => User::factory(),
         ];
     }
 }

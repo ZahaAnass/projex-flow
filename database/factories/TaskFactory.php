@@ -19,11 +19,19 @@ class TaskFactory extends Factory
     public function definition(): array
     {
         return [
-            'title' => fake()->catchPhrase(), // e.g., "Upgradable local instruction"
-            'description' => fake()->sentence(),
-            'priority' => fake()->randomElement(['low', 'medium', 'high']),
+            'uuid' => fake()->uuid(),
+            'title' => fake()->sentence(4),
+            'description' => fake()->paragraph(),
+            'type' => fake()->randomElement(['task', 'bug', 'story']),
+            'priority' => fake()->randomElement(['low', 'medium', 'high', 'urgent']),
             'status' => fake()->randomElement(['todo', 'in_progress', 'review', 'done']),
+            'order' => fake()->numberBetween(0, 10),
+            'due_date' => fake()->dateTimeBetween('now', '+2 months'),
+            'estimated_hours' => fake()->numberBetween(1, 40),
+
+            // Relationships (to be overridden in seeder)
             'project_id' => Project::factory(),
+            'created_by' => User::factory(),
             'assigned_to' => User::factory(),
         ];
     }

@@ -13,12 +13,15 @@ return new class extends Migration
     {
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->unique();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->string('status')->default('active'); // active, completed, on_hold
-            $table->dateTime('due_date')->nullable();
-            $table->foreignId('created_by')->constrained('users');
+            $table->string('status')->default('pending'); // pending, active, on_hold, completed
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
+            $table->foreignId('owner_id')->constrained('users'); // The Project Manager/Creator
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
