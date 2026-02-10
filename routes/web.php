@@ -112,14 +112,16 @@ Route::middleware(['auth'])->group(function () {
     */
     Route::middleware('role:client')->prefix('client')->name('client.')->group(function () {
 
-        // View projects
+        // Dashboard
+        Route::get('/dashboard', [ClientProjectController::class, 'dashboard'])
+            ->name('dashboard');
+
+        // Projects (List & Detail)
         Route::get('/projects', [ClientProjectController::class, 'index'])
             ->name('projects.index');
 
-        // View project progress
         Route::get('/projects/{project}', [ClientProjectController::class, 'show'])
             ->name('projects.show');
-
     });
 });
 

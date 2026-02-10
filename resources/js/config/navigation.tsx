@@ -6,8 +6,6 @@ import {
     Users,
     Shield,
     BarChart3,
-    FileText,
-    UserCircle
 } from "lucide-react";
 
 export const navigation: Record<string, NavItem[]> = {
@@ -33,6 +31,5 @@ export const navigation: Record<string, NavItem[]> = {
     client: [
         { title: "Dashboard", href: "/client/dashboard", icon: LayoutGrid },
         { title: "My Projects", href: "/client/projects", icon: Briefcase },
-        { title: "Progress", href: "/client/reports", icon: BarChart3 },
     ],
 };
