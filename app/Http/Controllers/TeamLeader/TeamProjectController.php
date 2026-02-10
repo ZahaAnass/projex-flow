@@ -12,24 +12,36 @@ class TeamProjectController extends Controller
 {
     public function dashboard()
     {
-        // Stats for the Team Leader's Dashboard
         return Inertia::render('TeamLeader/Dashboard', [
             'stats' => [
                 'active_projects' => Project::where('status', 'active')->count(),
-                'pending_tasks' => Task::where('status', 'todo')->count(),
+                'pending_tasks' => Task::where('status', '!=', 'done')->count(),
                 'completed_tasks' => Task::where('status', 'done')->count(),
             ],
-            // Get 5 recent tasks across all projects
-            'recent_tasks' => Task::with(['project', 'assignee'])
+            // 5 Recent projects
+            'recent_projects' => Project::with('owner')
                 ->latest()
                 ->take(5)
                 ->get()
+                ->map(fn($p) => [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'owner' => $p->owner->name,
+                    'status' => $p->status,
+                    'date' => $p->created_at->diffForHumans(),
+                ]),
+            'task_distribution' => [
+                'todo' => Task::where('status', 'todo')->count(),
+                'in_progress' => Task::where('status', 'in_progress')->count(),
+                'review' => Task::where('status', 'review')->count(),
+                'done' => Task::where('status', 'done')->count(),
+            ]
         ]);
     }
 
     public function index(Request $request)
     {
-        $query = Project::query();
+        $query = Project::query()->with('owner');
 
         if ($request->search) {
             $query->where('name', 'like', '%'.$request->search.'%');
@@ -43,14 +55,10 @@ class TeamProjectController extends Controller
 
     public function show(Project $project)
     {
-        // When a Leader clicks a project, they see the Kanban Board for THAT project
-        $tasks = $project->tasks()
-            ->with('assignee')
-            ->get(); // Get all tasks for this project
-
+        // View specific project details + its tasks
         return Inertia::render('TeamLeader/Projects/Show', [
-            'project' => $project,
-            'tasks' => $tasks
+            'project' => $project->load('owner'),
+            'tasks' => $project->tasks()->with('assignee')->latest()->get(),
         ]);
     }
 }

@@ -1,137 +1,100 @@
 import AppLayout from "@/layouts/app-layout";
 import { Head, Link } from "@inertiajs/react";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
-import { CheckCircle2, Clock, FileText, ArrowRight } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Briefcase, CheckSquare, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
-type TeamDashboardProps = {
-    stats: {
-        active_projects: number;
-        pending_tasks: number;
-        completed_tasks: number;
-    };
-    recent_tasks: Array<{
-        id: number;
-        title: string;
-        project: {
-            name: string;
-        } | null;
-        assignee: {
-            name: string;
-        } | null;
-        status: string;
-    }>;
-};
-
-type task = {
-    id: number;
-    title: string;
-    project: {
-        name: string;
-    } | null;
-    assignee: {
-        name: string;
-    } | null;
-    status: string;
-};
-
-export default function TeamDashboard({ stats, recent_tasks }: TeamDashboardProps) {
+export default function TeamDashboard({ stats, recent_projects, task_distribution }: any) {
     return (
         <AppLayout breadcrumbs={[{ title: 'Team', href: '/team/dashboard' }]}>
             <Head title="Team Dashboard" />
             <div className="p-4 space-y-6">
 
+                <div className="flex items-center justify-between">
+                    <h2 className="text-3xl font-bold tracking-tight">Team Overview</h2>
+                    <Button asChild>
+                        <Link href="/team/tasks/create">+ New Task</Link>
+                    </Button>
+                </div>
+
                 {/* Stats Grid */}
                 <div className="grid gap-4 md:grid-cols-3">
-                    <Card className="border-l-4 border-l-blue-500">
+                    <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
-                            <FileText className="h-4 w-4 text-blue-500" />
+                            <Briefcase className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{stats.active_projects}</div>
-                            <p className="text-xs text-muted-foreground">Currently in progress</p>
                         </CardContent>
                     </Card>
-
-                    <Card className="border-l-4 border-l-yellow-500">
+                    <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Pending Tasks</CardTitle>
-                            <Clock className="h-4 w-4 text-yellow-500" />
+                            <Activity className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{stats.pending_tasks}</div>
-                            <p className="text-xs text-muted-foreground">Tasks in To-Do</p>
                         </CardContent>
                     </Card>
-
-                    <Card className="border-l-4 border-l-green-500">
+                    <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Completed Tasks</CardTitle>
-                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            <CardTitle className="text-sm font-medium">Completed</CardTitle>
+                            <CheckSquare className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{stats.completed_tasks}</div>
-                            <p className="text-xs text-muted-foreground">Successfully finished</p>
                         </CardContent>
                     </Card>
                 </div>
 
-                {/* Recent Activity */}
-                <Card className="col-span-4">
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <div>
-                            <CardTitle>Recent Team Tasks</CardTitle>
-                            <CardDescription>Latest updates across your projects.</CardDescription>
-                        </div>
-                        <Button variant="outline" size="sm" asChild>
-                            <Link href={`/team/projects`}>View All Projects <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                        </Button>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Task</TableHead>
-                                    <TableHead>Project</TableHead>
-                                    <TableHead>Assignee</TableHead>
-                                    <TableHead>Status</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {recent_tasks.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="text-center h-24 text-muted-foreground">No recent activity.</TableCell>
-                                    </TableRow>
-                                ) : (
-                                    recent_tasks.map((task: task) => (
-                                        <TableRow key={task.id}>
-                                            <TableCell className="font-medium">{task.title}</TableCell>
-                                            <TableCell>{task.project?.name}</TableCell>
-                                            <TableCell>
-                                                {task.assignee ? (
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="h-6 w-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold">
-                                                            {task.assignee.name.charAt(0)}
-                                                        </div>
-                                                        <span className="text-xs">{task.assignee.name}</span>
-                                                    </div>
-                                                ) : <span className="text-xs text-muted-foreground italic">Unassigned</span>}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant={task.status === 'done' ? 'default' : 'secondary'}>
-                                                    {task.status.replace('_', ' ')}
-                                                </Badge>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                )}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                    {/* Recent Projects */}
+                    <Card className="col-span-4">
+                        <CardHeader>
+                            <CardTitle>Recent Projects</CardTitle>
+                            <CardDescription>Latest projects added.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-8">
+                                {recent_projects.map((project: any) => (
+                                    <div key={project.id} className="flex items-center">
+                                        <div className="space-y-1">
+                                            <p className="text-sm font-medium leading-none">{project.name}</p>
+                                            <p className="text-xs text-muted-foreground">Owner: {project.owner}</p>
+                                        </div>
+                                        <div className="ml-auto font-medium">
+                                            <Badge variant={project.status === 'active' ? 'default' : 'secondary'}>{project.status}</Badge>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Task Overview */}
+                    <Card className="col-span-3">
+                        <CardHeader>
+                            <CardTitle>Task Status</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-4">
+                                {Object.entries(task_distribution).map(([key, val]: any) => (
+                                    <div key={key} className="flex items-center justify-between">
+                                        <span className="capitalize text-sm">{key.replace('_', ' ')}</span>
+                                        <span className="font-bold">{val}</span>
+                                    </div>
+                                ))}
+                                <div className="pt-4 mt-4 border-t">
+                                    <Button variant="outline" className="w-full" asChild>
+                                        <Link href="/team/tasks">Manage Tasks</Link>
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
         </AppLayout>
     );

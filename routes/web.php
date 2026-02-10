@@ -9,6 +9,8 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\User\UserTaskController;
+use App\Http\Controllers\User\UserDashboardController;
 use App\Http\Controllers\TeamLeader\TeamProjectController;
 use App\Http\Controllers\TeamLeader\TeamTaskController;
 use App\Http\Controllers\Client\ClientProjectController;
@@ -73,30 +75,34 @@ Route::middleware(['auth'])->group(function () {
         // Dashboard
         Route::get('/dashboard', [TeamProjectController::class, 'dashboard'])->name('dashboard');
 
-        // Projects (View List & Kanban Board)
+        // Projects (Read Only / View)
         Route::get('/projects', [TeamProjectController::class, 'index'])->name('projects.index');
         Route::get('/projects/{project}', [TeamProjectController::class, 'show'])->name('projects.show');
 
-        // Tasks API (For Kanban & Creation)
+        // Tasks (Full CRUD)
+        Route::get('/tasks', [TeamTaskController::class, 'index'])->name('tasks.index');
+        Route::get('/tasks/create', [TeamTaskController::class, 'create'])->name('tasks.create');
         Route::post('/tasks', [TeamTaskController::class, 'store'])->name('tasks.store');
-        Route::put('/tasks/{task}', [TeamTaskController::class, 'update'])->name('tasks.update'); // Needed for Drag & Drop
+        Route::get('/tasks/{task}/edit', [TeamTaskController::class, 'edit'])->name('tasks.edit');
+        Route::put('/tasks/{task}', [TeamTaskController::class, 'update'])->name('tasks.update');
         Route::delete('/tasks/{task}', [TeamTaskController::class, 'destroy'])->name('tasks.destroy');
+
     });
 
     /*
     |--------------------------------------------------------------------------
-    | USER ROUTES
+    | USER (MEMBER) ROUTES
     |--------------------------------------------------------------------------
     */
     Route::middleware('role:user')->prefix('user')->name('user.')->group(function () {
 
-        // View assigned tasks
-        Route::get('/tasks', [TaskController::class, 'myTasks'])
-            ->name('tasks.index');
+        // CHANGE: Point to a controller instead of redirecting
+        Route::get('/dashboard', [UserDashboardController::class, 'index'])
+            ->name('dashboard');
 
-        // Update task status
-        Route::patch('/tasks/{task}', [TaskController::class, 'updateStatus'])
-            ->name('tasks.update');
+        // My Tasks
+        Route::get('/tasks', [UserTaskController::class, 'index'])->name('tasks.index');
+        Route::put('/tasks/{task}', [UserTaskController::class, 'update'])->name('tasks.update'); // For Kanban Move
     });
 
     /*
