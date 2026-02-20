@@ -76,11 +76,8 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, User $user)
     {
+        // Only take non-password fields
         $data = $request->only(['name', 'email', 'phone', 'status']);
-
-        if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
-        }
 
         $user->update($data);
         $user->syncRoles([$request->role]); // Spatie Sync

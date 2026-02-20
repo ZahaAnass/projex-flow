@@ -9,140 +9,112 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import InputError from '@/components/input-error';
 import { BreadcrumbItem } from '@/types';
 import { toast } from "sonner";
-import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { ArrowLeft, RefreshCw, UserCog } from 'lucide-react';
 
-type User = {
-    id: number;
-    name: string;
-    email: string;
-    role: string;
-};
-
-export default function UserEdit({ user }: { user: User }) {
+export default function UserEdit({ user, roles, current_role }: any) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Admin', href: '/admin/dashboard' },
         { title: 'Users', href: '/admin/users' },
         { title: 'Edit', href: `/admin/users/${user.id}/edit` },
     ];
 
-    const { data, setData, put, processing, errors, reset } = useForm({
+    const { data, setData, put, processing, errors } = useForm({
         name: user.name,
         email: user.email,
-        role: user.role,
-        password: '',
-        password_confirmation: '',
+        phone: user.phone || '',
+        role: current_role || 'user',
+        status: user.status || 'active',
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
         put(`/admin/users/${user.id}`, {
-            onError: () => {
-                toast.error("Failed to update user.", {
-                    className: "bg-red-500 text-white border-none"
-                });
-            },
-            onFinish: () => reset('password', 'password_confirmation'),
+            onError: () => toast.error("Please fix the errors in the form.", { className: "bg-red-50 text-red-600 border-red-200" }),
         });
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Edit User" />
+            <Head title={`Edit User: ${user.name}`} />
+            <div className="max-w-5xl mx-auto p-6 space-y-6 w-full">
 
-            <div className="max-w-3xl mx-auto p-4">
-                <div className="mb-4">
-                    <Link href={"/admin/users"} className="flex items-center text-sm text-muted-foreground hover:text-foreground">
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Users
-                    </Link>
-                </div>
+                <Link href="/admin/users" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Back to Directory
+                </Link>
 
-                <Card className="border-sidebar-border/70">
-                    <CardHeader>
-                        <CardTitle>Edit User: {user.name}</CardTitle>
-                        <CardDescription>Update account information. Leave password blank to keep current one.</CardDescription>
+                <Card className="shadow-lg w-full">
+                    <CardHeader className="bg-muted/10 pb-8 px-8 border-b">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-primary/10 rounded-xl"><UserCog className="h-8 w-8 text-primary" /></div>
+                                <div>
+                                    <CardTitle className="text-2xl">Edit Profile</CardTitle>
+                                    <CardDescription className="text-base mt-1">Update details for {user.name}</CardDescription>
+                                </div>
+                            </div>
+                        </div>
                     </CardHeader>
 
                     <form onSubmit={submit}>
-                        <CardContent className="space-y-6">
-
-                            {/* Name */}
-                            <div className="space-y-2">
-                                <Label htmlFor="name">Full Name</Label>
-                                <Input
-                                    id="name"
-                                    value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
-                                    required
-                                />
-                                <InputError message={errors.name} />
-                            </div>
-
-                            {/* Email */}
-                            <div className="space-y-2">
-                                <Label htmlFor="email">Email Address</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    value={data.email}
-                                    onChange={(e) => setData('email', e.target.value)}
-                                    required
-                                />
-                                <InputError message={errors.email} />
-                            </div>
-
-                            {/* Role */}
-                            <div className="space-y-2">
-                                <Label htmlFor="role">System Role</Label>
-                                <Select value={data.role} onValueChange={(val) => setData('role', val)}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select a role" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="admin">Admin</SelectItem>
-                                        <SelectItem value="team_leader">Team Leader</SelectItem>
-                                        <SelectItem value="user">User</SelectItem>
-                                        <SelectItem value="client">Client</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <InputError message={errors.role} />
-                            </div>
-
-                            {/* Password Change (Optional) */}
-                            <div className="p-4 border border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-900 rounded-lg">
-                                <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-3">Change Password (Optional)</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="password">New Password</Label>
-                                        <Input
-                                            id="password"
-                                            type="password"
-                                            placeholder="Leave empty to keep current"
-                                            value={data.password}
-                                            onChange={(e) => setData('password', e.target.value)}
-                                        />
-                                        <InputError message={errors.password} />
+                        <CardContent className="space-y-10 p-8">
+                            {/* Personal Info */}
+                            <div className="space-y-6">
+                                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider pb-2 border-b">Personal Information</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-3">
+                                        <Label htmlFor="name" className="text-base">Full Name</Label>
+                                        <Input id="name" className="h-12 text-base" value={data.name} onChange={(e) => setData('name', e.target.value)} />
+                                        <InputError message={errors.name} />
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="password_confirmation">Confirm Password</Label>
-                                        <Input
-                                            id="password_confirmation"
-                                            type="password"
-                                            placeholder="Confirm new password"
-                                            value={data.password_confirmation}
-                                            onChange={(e) => setData('password_confirmation', e.target.value)}
-                                        />
+                                    <div className="space-y-3">
+                                        <Label htmlFor="email" className="text-base">Email Address</Label>
+                                        <Input id="email" type="email" className="h-12 text-base" value={data.email} onChange={(e) => setData('email', e.target.value)} />
+                                        <InputError message={errors.email} />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-3">
+                                        <Label htmlFor="phone" className="text-base">Phone Number</Label>
+                                        <Input id="phone" className="h-12 text-base" value={data.phone} onChange={(e) => setData('phone', e.target.value)} />
+                                        <InputError message={errors.phone} />
                                     </div>
                                 </div>
                             </div>
 
+                            {/* Access & Status */}
+                            <div className="space-y-6">
+                                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider pb-2 border-b">Access & Permissions</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-3">
+                                        <Label htmlFor="role" className="text-base">System Role</Label>
+                                        <Select value={data.role} onValueChange={(val) => setData('role', val)}>
+                                            <SelectTrigger className="h-12 text-base"><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                {roles.map((r: string) => <SelectItem key={r} value={r} className="capitalize text-base">{r.replace('_', ' ')}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                        <InputError message={errors.role} />
+                                    </div>
+                                    <div className="space-y-3">
+                                        <Label htmlFor="status" className="text-base">Account Status</Label>
+                                        <Select value={data.status} onValueChange={(val) => setData('status', val)}>
+                                            <SelectTrigger className="h-12 text-base"><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="active" className="text-base">Active (Full Access)</SelectItem>
+                                                <SelectItem value="inactive" className="text-base">Inactive (Suspended)</SelectItem>
+                                                <SelectItem value="banned" className="text-base">Banned (Revoked)</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <InputError message={errors.status} />
+                                    </div>
+                                </div>
+                            </div>
                         </CardContent>
 
-                        <CardFooter className="flex justify-between py-4">
-                            <Button variant="ghost" asChild>
-                                <Link href={"/admin/users"}>Cancel</Link>
-                            </Button>
-                            <Button type="submit" disabled={processing} className="min-w-[120px]">
-                                {processing ? 'Updating...' : <><RefreshCw className="mr-2 h-4 w-4" /> Update User</>}
+                        <CardFooter className="flex justify-end gap-4 py-6 px-8 bg-muted/5 border-t">
+                            <Button variant="outline" size="lg" className="h-12 px-6" asChild><Link href="/admin/users">Cancel</Link></Button>
+                            <Button type="submit" size="lg" disabled={processing} className="h-12 px-8">
+                                {processing ? 'Updating...' : <><RefreshCw className="mr-2 h-5 w-5" /> Save Changes</>}
                             </Button>
                         </CardFooter>
                     </form>

@@ -16,13 +16,11 @@ class UpdateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required', 'string', 'lowercase', 'email', 'max:255',
-                Rule::unique('users')->ignore($this->user->id),
-            ],
-            'role' => ['required', 'string', 'in:admin,team_leader,user,client'],
-            'password' => ['nullable', 'confirmed', 'min:8'],
+            'name' => 'required|string|max:255',
+            'email' => ['required', 'string', 'email', 'max:255', \Illuminate\Validation\Rule::unique('users')->ignore($this->user->id)],
+            'role' => 'required|string|exists:roles,name',
+            'phone' => 'nullable|string|max:20',
+            'status' => 'required|in:active,inactive,banned',
         ];
     }
 }

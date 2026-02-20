@@ -1,175 +1,144 @@
 import AppLayout from "@/layouts/app-layout";
-import { Head, Link, router, usePage } from "@inertiajs/react";
-import { useEffect, useRef } from "react";
+import { Head, Link, router, usePage } from "@inertiajs/react"; // Added usePage
+import { useRef, useEffect } from "react"; // Added useEffect
 import { debounce } from "lodash";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, Trash2, Edit } from "lucide-react";
+import { Search, MoreHorizontal, Edit, Trash2, Shield, User as UserIcon } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { BreadcrumbItem } from '@/types';
 import InertiaPagination from "@/components/inertia-pagination";
-import { toast } from "sonner";
 import DeleteDialog from "@/components/delete-dialog";
-
-// Types
-type LaravelPagination<T> = {
-    data: T[];
-    links: { url: string | null; label: string; active: boolean }[];
-    from: number | null;
-    to: number | null;
-    total: number;
-    prev_page_url: string | null;
-    next_page_url: string | null;
-};
-
-type User = {
-    id: number;
-    name: string;
-    email: string;
-    role: string;
-};
-
-type Props = {
-    users: LaravelPagination<User>;
-    filters: {
-        search?: string;
-        role?: string;
-    };
-};
+import { toast } from "sonner"; // Imported toast
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Admin', href: '/admin/dashboard' },
     { title: 'Users', href: '/admin/users' },
 ];
 
-export default function UsersIndex({ users, filters }: Props) {
-    const { flash, auth } = usePage<{
-        flash?: { success?: string; error?: string },
-        auth: { user: User }
-    }>().props;
+export default function UsersIndex({ users, filters, roles, auth }: any) {
+    // Catch flash messages from Laravel
+    const { flash } = usePage().props as any;
 
-    // Search Handler
+    // Trigger toast when flash message exists
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success);
+        }
+        if (flash?.error) {
+            toast.error(flash.error);
+        }
+    }, [flash]);
+
     const handleSearch = useRef(debounce((q: string) => {
         router.get("/admin/users", { ...filters, search: q }, { preserveState: true, replace: true });
     }, 500)).current;
 
-    // Toast Effect
-    useEffect(() => {
-        if (flash?.success) {
-            toast.success(flash.success, {
-                id: flash.success,
-                className: "bg-green-500 text-white border-green-600",
-            });
-        }
-        if (flash?.error) {
-            toast.error(flash.error, {
-                id: flash.error,
-                className: "bg-red-500 text-white border-red-600",
-            });
-        }
-    }, [flash]);
+    const handleRoleFilter = (role: string) => {
+        router.get("/admin/users", { ...filters, role }, { preserveState: true, replace: true });
+    };
 
-    // Delete Handler
     function deleteUser(id: number) {
-        router.delete(`/admin/users/${id}`, {
-            preserveScroll: true,
-        });
+        router.delete(`/admin/users/${id}`, { preserveScroll: true });
     }
+
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'active': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+            case 'inactive': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+            case 'banned': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+            default: return 'bg-gray-100 text-gray-800';
+        }
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Manage Users" />
-            <div className="p-4 space-y-4">
+            <div className="p-6 space-y-6 w-full">
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap p-6">
-                        <div className="flex gap-4 items-center flex-1">
-                            <div className="relative w-full sm:w-64">
-                                <Input
-                                    defaultValue={filters.search ?? ""}
-                                    onChange={(e) => handleSearch(e.target.value)}
-                                    className="peer ps-9"
-                                    placeholder="Search users..."
-                                />
-                                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2 text-muted-foreground/80">
-                                    <Search size={16} />
-                                </div>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-3xl font-bold tracking-tight">Team Members</h2>
+                        <p className="text-sm text-muted-foreground mt-1">Manage system access and roles across the entire platform.</p>
+                    </div>
+                    <Button asChild size="lg"><Link href="/admin/users/create"><UserIcon className="mr-2 h-4 w-4"/> Add New User</Link></Button>
+                </div>
+
+                <Card className="shadow-sm w-full">
+                    <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 bg-muted/10 border-b">
+                        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                            <div className="relative w-full sm:w-80">
+                                <Input defaultValue={filters.search ?? ""} onChange={(e) => handleSearch(e.target.value)} className="peer ps-9 bg-background" placeholder="Search by name or email..." />
+                                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground/80"><Search size={16} /></div>
                             </div>
-
-                            <Select
-                                defaultValue={filters.role ?? "all"}
-                                onValueChange={(v) => router.get("/admin/users", { ...filters, role: v === "all" ? null : v }, { preserveState: true, replace: true })}
-                            >
-                                <SelectTrigger className="w-[180px]">
-                                    <SelectValue placeholder="Filter by Role" />
-                                </SelectTrigger>
+                            <Select defaultValue={filters.role ?? "all"} onValueChange={handleRoleFilter}>
+                                <SelectTrigger className="w-full sm:w-[200px] bg-background"><SelectValue placeholder="Filter Role" /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Roles</SelectItem>
-                                    <SelectItem value="admin">Admin</SelectItem>
-                                    <SelectItem value="team_leader">Team Leader</SelectItem>
-                                    <SelectItem value="user">User</SelectItem>
-                                    <SelectItem value="client">Client</SelectItem>
+                                    {roles.map((r: string) => <SelectItem key={r} value={r} className="capitalize"><span className="flex items-center"><Shield className="mr-2 h-3 w-3 opacity-50"/> {r.replace('_', ' ')}</span></SelectItem>)}
                                 </SelectContent>
                             </Select>
                         </div>
-
-                        <Button asChild>
-                            <Link href={`/admin/users/create`}>+ Add User</Link>
-                        </Button>
                     </CardHeader>
-                </Card>
-
-                <Card>
                     <CardContent className="p-0">
-                        <Table>
+                        <Table className="w-full">
                             <TableHeader>
-                                <TableRow>
-                                    <TableHead className="pl-6">Name</TableHead>
+                                <TableRow className="bg-muted/5">
+                                    <TableHead className="pl-6 py-4">Name</TableHead>
                                     <TableHead>Email</TableHead>
                                     <TableHead>Role</TableHead>
+                                    <TableHead>Status</TableHead>
                                     <TableHead className="text-right pr-6">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {users.data.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                                            No users found.
-                                        </TableCell>
-                                    </TableRow>
+                                    <TableRow><TableCell colSpan={5} className="text-center py-12 text-muted-foreground border-b-0">No users found.</TableCell></TableRow>
                                 ) : (
-                                    users.data.map((user) => (
-                                        <TableRow key={user.id}>
-                                            <TableCell className="font-medium pl-6">{user.name}</TableCell>
-                                            <TableCell>{user.email}</TableCell>
+                                    users.data.map((user: any) => (
+                                        <TableRow key={user.id} className="hover:bg-muted/20 transition-colors">
+                                            <TableCell className="font-medium pl-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                                                        {user.name.charAt(0)}
+                                                    </div>
+                                                    {user.name}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-muted-foreground">{user.email}</TableCell>
                                             <TableCell>
-                                                <Badge variant="outline" className="capitalize">
+                                                <Badge variant="outline" className="capitalize border-primary/20 bg-primary/5 py-1 px-3">
                                                     {user.role.replace('_', ' ')}
                                                 </Badge>
                                             </TableCell>
+                                            <TableCell>
+                                                <Badge variant="secondary" className={`capitalize ${getStatusColor(user.status)} border-none py-1 px-3`}>
+                                                    {user.status}
+                                                </Badge>
+                                            </TableCell>
                                             <TableCell className="text-right pr-6">
-                                                <div className="flex justify-end gap-2">
-                                                    <Button variant="ghost" size="icon" asChild>
-                                                        <Link href={`/admin/users/${user.id}/edit`}>
-                                                            <Edit className="w-4 h-4 text-muted-foreground" />
-                                                        </Link>
-                                                    </Button>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end" className="w-40">
+                                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                        <DropdownMenuItem asChild><Link href={`/admin/users/${user.id}/edit`} className="w-full cursor-pointer"><Edit className="mr-2 h-4 w-4" /> Edit</Link></DropdownMenuItem>
 
-                                                    {user.role !== 'admin' && user.id !== auth.user.id && (
-                                                        <DeleteDialog
-                                                            title="Delete User"
-                                                            description={`Are you sure you want to delete ${user.name}?`}
-                                                            onConfirm={() => deleteUser(user.id)}
-                                                        >
-                                                            <Button variant="ghost" size="icon" className="hover:bg-red-50 hover:text-red-600">
-                                                                <Trash2 className="w-4 h-4 text-red-500" />
-                                                            </Button>
-                                                        </DeleteDialog>
-                                                    )}
-                                                </div>
+                                                        {user.id !== auth.user.id && (
+                                                            <>
+                                                                <DropdownMenuSeparator />
+                                                                <DeleteDialog title="Delete User" description={`Remove ${user.name} from the system?`} onConfirm={() => deleteUser(user.id)}>
+                                                                    <div className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-red-100 hover:text-red-900 text-red-600 dark:hover:bg-red-900/30">
+                                                                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                                                    </div>
+                                                                </DeleteDialog>
+                                                            </>
+                                                        )}
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             </TableCell>
                                         </TableRow>
                                     ))
@@ -178,10 +147,7 @@ export default function UsersIndex({ users, filters }: Props) {
                         </Table>
                     </CardContent>
                 </Card>
-
-                <div className="mt-4">
-                    <InertiaPagination data={users} />
-                </div>
+                <div className="mt-6"><InertiaPagination data={users} /></div>
             </div>
         </AppLayout>
     );
