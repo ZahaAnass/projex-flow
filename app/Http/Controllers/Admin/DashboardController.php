@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use App\Models\Sprint;
+use App\Models\TimeEntry;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
@@ -16,8 +18,8 @@ class DashboardController extends Controller
             'stats' => [
                 'total_users' => User::count(),
                 'active_projects' => Project::where('status', 'active')->count(),
-                'pending_tasks' => Task::where('status', '!=', 'done')->count(),
-                'completed_tasks' => Task::where('status', 'done')->count(),
+                'active_sprints' => Sprint::where('status', 'active')->count(), // New
+                'total_hours' => round(TimeEntry::sum('duration_minutes') / 60, 1), // New
             ],
             'recent_projects' => Project::with('owner')
                 ->latest()

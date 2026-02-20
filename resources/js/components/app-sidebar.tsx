@@ -13,38 +13,19 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid } from 'lucide-react';
 import AppLogo from './app-logo';
 import { navigation } from '@/config/navigation';
 
 export function AppSidebar() {
+    // We grab the role coming from HandleInertiaRequests
     const { props }: { props: { auth: { user: { role: string } } } } = usePage();
-    const role = props.auth.user.role;
+    const role = props.auth.user.role || 'user'; // Fallback
 
-    const mainNavItems: NavItem[] = navigation[role] ?? [
-        {
-            title: 'Dashboard',
-            href: '/dashboard',
-            icon: LayoutGrid
-        },
-        {
-            title: 'No Navigation Items',
-            href: '/dashboard',
-            icon: LayoutGrid
-        }
-    ];
+    // Select navigation based on role, default to empty array if undefined
+    const mainNavItems: NavItem[] = navigation[role] ?? [];
 
     const footerNavItems: NavItem[] = [
-        // {
-        //     title: 'Repository',
-        //     href: 'https://github.com/laravel/react-starter-kit',
-        //     icon: Folder,
-        // },
-        // {
-        //     title: 'Documentation',
-        //     href: 'https://laravel.com/docs/starter-kits#react',
-        //     icon: BookOpen,
-        // },
+        // Optional footer items
     ];
 
     return (

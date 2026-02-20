@@ -6,106 +6,92 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
-use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing.
-     */
     public function index(Request $request)
     {
-        $query = User::query();
+        $query = User::query()->with('roles'); // Eager load roles
 
         if ($request->search) {
-            $query->where('name', 'like', '%'.$request->search.'%')
-                ->orWhere('email', 'like', '%'.$request->search.'%');
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', '%'.$request->search.'%')
+                    ->orWhere('email', 'like', '%'.$request->search.'%');
+            });
         }
 
         if ($request->role && $request->role !== 'all') {
-            $query->where('role', $request->role);
+            $query->role($request->role); // Spatie Scope
         }
 
         return Inertia::render('Admin/Users/Index', [
-            'users' => $query->latest()->paginate(10)->withQueryString(),
+            'users' => $query->latest()->paginate(10)->through(fn($user) => [
+                'id' => $user->id,
+                'uuid' => $user->uuid,
+                'name' => $user->name,
+                'email' => $user->email,
+                'status' => $user->status,
+                'role' => $user->roles->first()?->name ?? 'user', // Get Spatie Role
+                'created_at' => $user->created_at->format('Y-m-d'),
+            ])->withQueryString(),
             'filters' => $request->only(['search', 'role']),
+            'roles' => Role::pluck('name'), // Pass available roles for filter
         ]);
     }
 
-    /**
-     * Show create form.
-     */
     public function create()
     {
-        return Inertia::render('Admin/Users/Create');
+        return Inertia::render('Admin/Users/Create', [
+            'roles' => Role::pluck('name'),
+        ]);
     }
 
-    /**
-     * Store new user.
-     */
     public function store(StoreUserRequest $request)
     {
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'role' => $request->role,
+            'phone' => $request->phone,
             'password' => Hash::make($request->password),
+            'status' => 'active',
         ]);
 
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User created successfully.');
+        $user->assignRole($request->role); // Spatie Assign
+
+        return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
     }
 
-    /**
-     * Show edit form.
-     */
     public function edit(User $user)
     {
         return Inertia::render('Admin/Users/Edit', [
-            'user' => $user
+            'user' => $user->load('roles'),
+            'current_role' => $user->roles->first()?->name,
+            'roles' => Role::pluck('name'),
         ]);
     }
 
-    /**
-     * Update existing user.
-     */
     public function update(UpdateUserRequest $request, User $user)
     {
+        $data = $request->only(['name', 'email', 'phone', 'status']);
 
-        $data = [
-            'name' => $request->name,
-            'email' => $request->email,
-            'role' => $request->role,
-        ];
-
-        // Only update password if provided
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
         }
 
         $user->update($data);
+        $user->syncRoles([$request->role]); // Spatie Sync
 
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User updated successfully.');
+        return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }
 
-    /**
-     * Delete user.
-     */
     public function destroy(User $user)
     {
-        if ($user->id === auth()->id()) {
-            return back()->with('error', 'You cannot delete your own account.');
-        }
-
-        if ($user->role === 'admin') {
-            return back()->with('error', 'Security Alert: You cannot delete other administrators.');
-        }
-
+        if ($user->id === auth()->id()) return back()->with('error', 'Cannot delete yourself.');
         $user->delete();
-
-        return redirect()->back()->with('success', 'User deleted successfully.');
+        return back()->with('success', 'User deleted.');
     }
 }
