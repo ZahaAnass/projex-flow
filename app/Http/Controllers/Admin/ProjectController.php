@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\StoreProjectRequest;
-use App\Http\Requests\Admin\UpdateProjectRequest; // You create this similar to Store
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -20,24 +18,59 @@ class ProjectController extends Controller
             $query->where('name', 'like', '%'.$request->search.'%');
         }
 
+        // 1. ADDED STATUS FILTER
+        if ($request->status && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
         return Inertia::render('Admin/Projects/Index', [
             'projects' => $query->latest()->paginate(10)->withQueryString(),
-            'filters' => $request->only(['search']),
+            'filters' => $request->only(['search', 'status']),
         ]);
     }
 
     public function create()
     {
         return Inertia::render('Admin/Projects/Create', [
-            // Only Admins and Team Leaders can own projects
             'owners' => User::role(['admin', 'team_leader'])->select('id', 'name')->get(),
         ]);
     }
 
-    public function store(StoreProjectRequest $request)
+    public function store(Request $request)
     {
-        Project::create($request->validated());
-        return redirect()->route('admin.projects.index')->with('success', 'Project created.');
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable',
+            'status' => 'required',
+            'owner_id' => 'required|exists:users,id',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+        ]);
+
+        Project::create($validated);
+        return redirect()->route('admin.projects.index')->with('success', 'Project created successfully.');
+    }
+
+    // 2. ADDED SHOW METHOD FOR VIEW PAGE
+    public function show(Project $project)
+    {
+        // Load relationships
+        $project->load(['owner', 'sprints', 'tasks']);
+
+        // Calculate basic stats for the view page
+        $totalTasks = $project->tasks->count();
+        $completedTasks = $project->tasks->where('status', 'done')->count();
+        $progress = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
+
+        return Inertia::render('Admin/Projects/Show', [
+            'project' => $project,
+            'stats' => [
+                'total_tasks' => $totalTasks,
+                'completed_tasks' => $completedTasks,
+                'progress' => $progress,
+                'sprints_count' => $project->sprints->count(),
+            ]
+        ]);
     }
 
     public function edit(Project $project)
@@ -50,18 +83,17 @@ class ProjectController extends Controller
 
     public function update(Request $request, Project $project)
     {
-        // Simple validation for update or use UpdateProjectRequest
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable',
             'status' => 'required',
             'owner_id' => 'required|exists:users,id',
             'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
 
         $project->update($validated);
-        return redirect()->route('admin.projects.index')->with('success', 'Project updated.');
+        return redirect()->route('admin.projects.index')->with('success', 'Project updated successfully.');
     }
 
     public function destroy(Project $project)

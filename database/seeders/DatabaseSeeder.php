@@ -63,10 +63,10 @@ class DatabaseSeeder extends Seeder
         }
 
         // 4. Create Tags
-        $tags = Tag::factory(8)->create();
+        $tags = Tag::factory(25)->create();
 
         // 5. Create Projects (Owned by the Leader)
-        $projects = Project::factory(5)->create([
+        $projects = Project::factory(25)->create([
             'owner_id' => $leader->id,
         ]);
 
@@ -79,7 +79,7 @@ class DatabaseSeeder extends Seeder
 
             // Create Tasks for each Sprint
             foreach ($sprints as $sprint) {
-                $tasks = Task::factory(5)->create([
+                $tasks = Task::factory(10)->create([
                     'project_id' => $project->id,
                     'sprint_id' => $sprint->id,
                     'created_by' => $leader->id,
