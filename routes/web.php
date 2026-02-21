@@ -51,7 +51,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('tasks', TaskController::class);
 
         // Professional Features
-        Route::resource('sprints', SprintController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::resource('sprints', SprintController::class);
         Route::get('/time-entries', [TimeEntryController::class, 'index'])->name('time-entries.index');
         Route::get('/activities', [ActivityLogController::class, 'index'])->name('activities.index');
         Route::get('/roles', [RoleController::class, 'index'])->name('roles');
