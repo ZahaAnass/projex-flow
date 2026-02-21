@@ -1,25 +1,24 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\ProjectController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\SprintController;
+use App\Http\Controllers\Admin\TaskController;
+use App\Http\Controllers\Admin\TimeEntryController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Client\ClientProjectController;
+use App\Http\Controllers\TeamLeader\TeamProjectController;
+use App\Http\Controllers\TeamLeader\TeamTaskController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 // Admin Controllers
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\ProjectController;
-use App\Http\Controllers\Admin\TaskController;
-use App\Http\Controllers\Admin\SprintController;
-use App\Http\Controllers\Admin\TimeEntryController;
-use App\Http\Controllers\Admin\ActivityLogController;
-use App\Http\Controllers\RoleController; // Kept as is if shared
+// Kept as is if shared
 
 // Other Roles
-use App\Http\Controllers\User\UserTaskController;
-use App\Http\Controllers\User\UserDashboardController;
-use App\Http\Controllers\TeamLeader\TeamProjectController;
-use App\Http\Controllers\TeamLeader\TeamTaskController;
-use App\Http\Controllers\Client\ClientProjectController;
 
 Route::get('/', function () {
     return Inertia::render('welcome', ['canRegister' => Features::enabled(Features::registration())]);

@@ -8,9 +8,10 @@ use App\Models\Tag;
 use App\Models\Task;
 use App\Models\TimeEntry;
 use App\Models\User;
+use App\Models\ActivityLog; // <-- Import the ActivityLog model
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role; // Import Spatie Role model
+use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -106,5 +107,9 @@ class DatabaseSeeder extends Seeder
                 'assigned_to' => null,
             ]);
         }
+
+        // 6. GENERATE FAKE ACTIVITY LOGS (New Addition)
+        // This will create 100 random log entries to populate your Admin view
+        ActivityLog::factory(100)->create();
     }
 }
