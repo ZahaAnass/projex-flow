@@ -23,10 +23,11 @@ export const navigation: Record<string, NavItem[]> = {
     ],
 
     team_leader: [
-        { title: "Dashboard", href: "/team/dashboard", icon: LayoutGrid },
-        { title: "My Projects", href: "/team/projects", icon: Briefcase },
-        { title: "Sprints", href: "/team/sprints", icon: Timer },
-        { title: "Team Tasks", href: "/team/tasks", icon: CheckSquare },
+        { title: "Dashboard", href: "/leader/dashboard", icon: LayoutGrid },
+        { title: "My Projects", href: "/leader/projects", icon: Briefcase },
+        { title: "Sprints", href: "/leader/sprints", icon: Timer },
+        { title: "Team Tasks", href: "/leader/tasks", icon: CheckSquare },
+        { title: "Team Time Logs", href: "/leader/time-entries", icon: Clock },
     ],
 
     user: [

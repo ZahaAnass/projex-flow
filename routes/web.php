@@ -9,8 +9,11 @@ use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\Admin\TimeEntryController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Client\ClientProjectController;
-use App\Http\Controllers\TeamLeader\TeamProjectController;
-use App\Http\Controllers\TeamLeader\TeamTaskController;
+use App\Http\Controllers\TeamLeader\ProjectController as TeamLeaderProjectController;
+use App\Http\Controllers\TeamLeader\SprintController as TeamLeaderSprintController;
+use App\Http\Controllers\TeamLeader\TaskController as TeamLeaderTaskController;
+use App\Http\Controllers\TeamLeader\DashboardController as TeamLeaderDashboardController;
+use App\Http\Controllers\TeamLeader\TimeEntryController as TeamLeaderTimeEntryController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -31,7 +34,7 @@ Route::middleware(['auth'])->group(function () {
         $role = auth()->user()->getRoleNames()->first();
         return match($role) {
             'admin' => redirect()->route('admin.dashboard'),
-            'team_leader' => redirect()->route('team.dashboard'),
+            'team_leader' => redirect()->route('leader.dashboard'),
             'client' => redirect()->route('client.dashboard'),
             default => redirect()->route('users.dashboard'),
         };
@@ -61,11 +64,16 @@ Route::middleware(['auth'])->group(function () {
     | TEAM LEADER ROUTES
     |--------------------------------------------------------------------------
     */
-    Route::middleware('role:team_leader')->prefix('team')->name('team.')->group(function () {
-        Route::get('/dashboard', [TeamProjectController::class, 'dashboard'])->name('dashboard');
-        Route::get('/projects', [TeamProjectController::class, 'index'])->name('projects.index');
-        Route::get('/projects/{project}', [TeamProjectController::class, 'show'])->name('projects.show');
-        Route::resource('tasks', TeamTaskController::class);
+    Route::middleware(['auth', 'role:team_leader'])->prefix('leader')->name('leader.')->group(function () {
+        Route::get('/dashboard', [TeamLeaderDashboardController::class, 'index'])->name('dashboard');
+
+        // The Scoped Resource Routes
+        Route::resource('projects', TeamLeaderProjectController::class);
+        Route::resource('sprints', TeamLeaderSprintController::class);
+        Route::resource('tasks', TeamLeaderTaskController::class);
+
+        Route::get('/time-entries', [TeamLeaderTimeEntryController::class, 'index'])->name('time-entries.index');
+
     });
 
     /*
@@ -91,4 +99,4 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

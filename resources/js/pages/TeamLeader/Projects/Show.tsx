@@ -1,135 +1,124 @@
 import AppLayout from "@/layouts/app-layout";
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, Briefcase, Calendar, CheckSquare, Timer, Edit, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, Calendar, User } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import InputError from "@/components/input-error";
-import { useState } from "react";
-import { toast } from "sonner";
-import TeamKanbanBoard from "./TeamKanbanBoard"; // Create this file (code below)
+import { Progress } from "@/components/ui/progress";
+import { BreadcrumbItem } from '@/types';
 
-export default function ProjectShow({ project, tasks, team_members }: any) {
-    const [open, setOpen] = useState(false);
+export default function ProjectShow({ project, stats }: any) {
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Leader Workspace', href: '/leader/dashboard' },
+        { title: 'Projects', href: '/leader/projects' },
+        { title: project.name, href: '' },
+    ];
 
-    return (
-        <AppLayout breadcrumbs={[
-            { title: 'Projects', href: '/team/projects' },
-            { title: project.name, href: '' }
-        ]}>
-            <Head title={project.name} />
-
-            <div className="flex flex-col h-screen max-h-[calc(100vh-64px)]">
-                {/* Header */}
-                <div className="px-6 py-4 border-b bg-background flex items-center justify-between shrink-0">
-                    <div className="flex items-center gap-4">
-                        <Link href={`/team/projects`}
-                            className="text-muted-foreground hover:text-foreground">
-                            <ArrowLeft className="h-5 w-5" />
-                        </Link>
-                        <div>
-                            <h1 className="text-xl font-bold tracking-tight">{project.name}</h1>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                <span className="flex items-center"><Calendar className="h-3 w-3 mr-1" /> Due: {project.due_date || 'N/A'}</span>
-                                <span className="px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 capitalize">{project.status}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Quick Add Task Dialog */}
-                    <CreateTaskDialog
-                        projectId={project.id}
-                        members={team_members || []} // Pass users if available, otherwise empty
-                        open={open}
-                        setOpen={setOpen}
-                    />
-                </div>
-
-                {/* Kanban Board Area */}
-                <div className="flex-1 overflow-hidden p-4 bg-muted/20">
-                    <TeamKanbanBoard tasks={tasks} />
-                </div>
-            </div>
-        </AppLayout>
-    );
-}
-
-// --- Internal Component: Create Task Dialog ---
-function CreateTaskDialog({ projectId, members, open, setOpen }: any) {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        project_id: projectId,
-        title: '',
-        description: '',
-        priority: 'medium',
-        assigned_to: '',
-    });
-
-    const submit = (e: React.FormEvent) => {
-        e.preventDefault();
-        post(`/team/projects/${projectId}`, {
-            onSuccess: () => {
-                setOpen(false);
-                reset();
-                toast.success("Task added to board");
-            },
-            onError: () => toast.error("Failed to add task"),
-        });
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'active': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+            case 'completed': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400';
+            case 'on_hold': return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400';
+            default: return 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300';
+        }
     };
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button><Plus className="mr-2 h-4 w-4" /> Add Task</Button>
-            </DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Create New Task</DialogTitle>
-                    <DialogDescription>Add a card to the "To Do" column.</DialogDescription>
-                </DialogHeader>
-                <form onSubmit={submit} className="space-y-4 py-2">
-                    <div className="space-y-2">
-                        <Label htmlFor="title">Task Title</Label>
-                        <Input id="title" value={data.title} onChange={e => setData('title', e.target.value)} required />
-                        <InputError message={errors.title} />
-                    </div>
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title={`Project: ${project.name}`} />
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label>Priority</Label>
-                            <Select defaultValue="medium" onValueChange={v => setData('priority', v)}>
-                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="low">Low</SelectItem>
-                                    <SelectItem value="medium">Medium</SelectItem>
-                                    <SelectItem value="high">High</SelectItem>
-                                </SelectContent>
-                            </Select>
+            <div className="p-6 space-y-6 w-full max-w-7xl mx-auto">
+                {/* Back Link & Actions */}
+                <div className="flex items-center justify-between">
+                    <Link href="/leader/projects" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                        <ArrowLeft className="mr-2 h-4 w-4" /> Back to My Projects
+                    </Link>
+                    <Button asChild variant="outline">
+                        <Link href={`/leader/projects/${project.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit Project</Link>
+                    </Button>
+                </div>
+
+                {/* Header Banner */}
+                <Card className="border-t-4 border-t-primary shadow-sm">
+                    <CardContent className="p-8">
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                            <div className="space-y-4">
+                                <div>
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="p-2 bg-primary/10 rounded-lg"><Briefcase className="h-6 w-6 text-primary" /></div>
+                                        <Badge variant="secondary" className={`capitalize ${getStatusColor(project.status)} border-none py-1 px-3`}>
+                                            {project.status.replace('_', ' ')}
+                                        </Badge>
+                                    </div>
+                                    <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
+                                </div>
+                                <p className="text-muted-foreground max-w-3xl leading-relaxed text-base">
+                                    {project.description || "No project description provided."}
+                                </p>
+                            </div>
+
+                            <div className="flex flex-col gap-4 min-w-[250px] p-5 bg-muted/20 rounded-xl border border-border/50">
+                                <div className="space-y-1">
+                                    <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Project Manager</span>
+                                    <div className="flex items-center gap-2 font-medium">
+                                        <User className="h-4 w-4 text-muted-foreground" />
+                                        {project.owner?.name || 'Unassigned'}
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Timeline</span>
+                                    <div className="flex flex-col text-sm font-medium">
+                                        <span className="flex items-center"><Calendar className="h-3 w-3 mr-2" /> Start: {project.start_date ? new Date(project.start_date).toLocaleDateString() : 'TBD'}</span>
+                                        <span className="flex items-center mt-1 text-muted-foreground"><Calendar className="h-3 w-3 mr-2" /> End: {project.end_date ? new Date(project.end_date).toLocaleDateString() : 'TBD'}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        {/* If you pass team members, uncomment this */}
-                        {/* <div className="space-y-2">
-                             <Label>Assignee</Label>
-                             <Select onValueChange={v => setData('assigned_to', v)}>
-                                 <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
-                                 <SelectContent>
-                                     {members.map((m: any) => <SelectItem key={m.id} value={String(m.id)}>{m.name}</SelectItem>)}
-                                 </SelectContent>
-                             </Select>
-                         </div> */}
-                    </div>
+                    </CardContent>
+                </Card>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="desc">Description</Label>
-                        <Textarea id="desc" value={data.description} onChange={e => setData('description', e.target.value)} />
-                    </div>
+                {/* Quick Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Card className="shadow-sm">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center">
+                                <CheckSquare className="mr-2 h-4 w-4" /> Task Progress
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold mb-2">{stats.progress}%</div>
+                            <Progress value={stats.progress} className="h-2" />
+                            <p className="text-xs text-muted-foreground mt-2">{stats.completed_tasks} of {stats.total_tasks} tasks completed</p>
+                        </CardContent>
+                    </Card>
 
-                    <DialogFooter>
-                        <Button type="submit" disabled={processing}>{processing ? 'Adding...' : 'Add Task'}</Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
+                    <Card className="shadow-sm">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center">
+                                <Timer className="mr-2 h-4 w-4" /> Sprints
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{stats.sprints_count}</div>
+                            <p className="text-xs text-muted-foreground mt-2">Active sprints planned for this project</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm border-l-4 border-l-blue-500">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center">
+                                <Briefcase className="mr-2 h-4 w-4" /> Workspace
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex items-end h-[68px]">
+                            {/* This filters the Task board specifically for this project! */}
+                            <Button className="w-full bg-blue-600 hover:bg-blue-700" asChild>
+                                <Link href={`/leader/tasks?search=${encodeURIComponent(project.name)}`}>Open Project Board</Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        </AppLayout>
     );
 }
