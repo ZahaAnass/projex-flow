@@ -14,6 +14,9 @@ use App\Http\Controllers\TeamLeader\SprintController as TeamLeaderSprintControll
 use App\Http\Controllers\TeamLeader\TaskController as TeamLeaderTaskController;
 use App\Http\Controllers\TeamLeader\DashboardController as TeamLeaderDashboardController;
 use App\Http\Controllers\TeamLeader\TimeEntryController as TeamLeaderTimeEntryController;
+use App\Http\Controllers\User\DashboardController as UserDashboardController;
+use App\Http\Controllers\User\TaskController as UserTaskController;
+use App\Http\Controllers\User\TimeEntryController as UserTimeEntryController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -36,7 +39,7 @@ Route::middleware(['auth'])->group(function () {
             'admin' => redirect()->route('admin.dashboard'),
             'team_leader' => redirect()->route('leader.dashboard'),
             'client' => redirect()->route('client.dashboard'),
-            default => redirect()->route('users.dashboard'),
+            default => redirect()->route('user.dashboard'),
         };
     })->name('dashboard');
 
@@ -81,10 +84,15 @@ Route::middleware(['auth'])->group(function () {
     | USER ROUTES
     |--------------------------------------------------------------------------
     */
-    Route::middleware('role:user')->prefix('users')->name('users.')->group(function () {
-        Route::get('/dashboard', [UsersDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/tasks', [UsersTaskController::class, 'index'])->name('tasks.index');
-        Route::put('/tasks/{task}', [UsersTaskController::class, 'update'])->name('tasks.update');
+    Route::middleware(['auth', 'role:user'])->prefix('user')->name('user.')->group(function () {
+        Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('dashboard');
+
+        // Users only need to view and update tasks (not create or delete them)
+        Route::get('/tasks', [UserTaskController::class, 'index'])->name('tasks.index');
+        Route::put('/tasks/{task}', [UserTaskController::class, 'update'])->name('tasks.update');
+
+        // Users need full control over their own time logs
+        Route::resource('time-entries', UserTimeEntryController::class)->except(['edit', 'show']);
     });
 
     /*
