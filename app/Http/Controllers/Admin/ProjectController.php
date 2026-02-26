@@ -18,7 +18,6 @@ class ProjectController extends Controller
             $query->where('name', 'like', '%'.$request->search.'%');
         }
 
-        // 1. ADDED STATUS FILTER
         if ($request->status && $request->status !== 'all') {
             $query->where('status', $request->status);
         }
@@ -33,6 +32,8 @@ class ProjectController extends Controller
     {
         return Inertia::render('Admin/Projects/Create', [
             'owners' => User::role(['admin', 'team_leader'])->select('id', 'name')->get(),
+            // Pass the clients to the view
+            'clients' => User::role('client')->select('id', 'name')->get(),
         ]);
     }
 
@@ -43,6 +44,7 @@ class ProjectController extends Controller
             'description' => 'nullable',
             'status' => 'required',
             'owner_id' => 'required|exists:users,id',
+            'client_id' => 'nullable|exists:users,id',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
@@ -51,13 +53,10 @@ class ProjectController extends Controller
         return redirect()->route('admin.projects.index')->with('success', 'Project created successfully.');
     }
 
-    // 2. ADDED SHOW METHOD FOR VIEW PAGE
     public function show(Project $project)
     {
-        // Load relationships
         $project->load(['owner', 'sprints', 'tasks']);
 
-        // Calculate basic stats for the view page
         $totalTasks = $project->tasks->count();
         $completedTasks = $project->tasks->where('status', 'done')->count();
         $progress = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
@@ -78,6 +77,8 @@ class ProjectController extends Controller
         return Inertia::render('Admin/Projects/Edit', [
             'project' => $project,
             'owners' => User::role(['admin', 'team_leader'])->select('id', 'name')->get(),
+            // Pass the clients to the view
+            'clients' => User::role('client')->select('id', 'name')->get(),
         ]);
     }
 
@@ -88,6 +89,7 @@ class ProjectController extends Controller
             'description' => 'nullable',
             'status' => 'required',
             'owner_id' => 'required|exists:users,id',
+            'client_id' => 'nullable|exists:users,id',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);

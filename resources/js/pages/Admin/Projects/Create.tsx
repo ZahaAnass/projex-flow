@@ -18,15 +18,22 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Create', href: '/admin/projects/create' },
 ];
 
-export default function ProjectCreate({ owners }: { owners: { id: number, name: string }[] }) {
-    const { data, setData, post, processing, errors } = useForm({
+export default function ProjectCreate({ owners, clients }: any) {
+    const { data, setData, post, processing, errors, transform } = useForm({
         name: '',
         description: '',
         status: 'pending',
         owner_id: '',
+        client_id: 'none', // Added for the new dropdown
         start_date: '',
         end_date: '',
     });
+
+    // Transforms 'none' into an actual null value for the database
+    transform((currentData) => ({
+        ...currentData,
+        client_id: currentData.client_id === 'none' ? null : currentData.client_id,
+    }));
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
@@ -72,10 +79,22 @@ export default function ProjectCreate({ owners }: { owners: { id: number, name: 
                                         <Select value={data.owner_id} onValueChange={(val) => setData('owner_id', val)}>
                                             <SelectTrigger className="h-12 text-base"><SelectValue placeholder="Assign a leader" /></SelectTrigger>
                                             <SelectContent>
-                                                {owners.map((owner) => <SelectItem key={owner.id} value={String(owner.id)} className="text-base">{owner.name}</SelectItem>)}
+                                                {owners.map((owner: any) => <SelectItem key={owner.id} value={String(owner.id)} className="text-base">{owner.name}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
                                         <InputError message={errors.owner_id} />
+                                    </div>
+                                    {/* NEW CLIENT DROPDOWN */}
+                                    <div className="space-y-3 md:col-span-2 lg:col-span-1">
+                                        <Label className="text-base">Assign Client <span className="text-muted-foreground font-normal">(Optional)</span></Label>
+                                        <Select value={data.client_id} onValueChange={(val) => setData('client_id', val)}>
+                                            <SelectTrigger className="h-12 text-base"><SelectValue placeholder="Select a client..." /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none" className="italic text-muted-foreground">Internal (No Client)</SelectItem>
+                                                {clients.map((c: any) => <SelectItem key={c.id} value={String(c.id)} className="text-base">{c.name}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                        <InputError message={errors.client_id} />
                                     </div>
                                 </div>
                                 <div className="space-y-3">

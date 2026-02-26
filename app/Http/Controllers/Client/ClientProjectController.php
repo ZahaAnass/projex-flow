@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
-use App\Models\Task;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -12,57 +11,73 @@ class ClientProjectController extends Controller
 {
     public function dashboard()
     {
-        // Stats for the client dashboard
+        $userId = auth()->id();
+
+        // Scope: Only projects assigned to this client
+        $myProjects = Project::where('client_id', $userId)->with('tasks')->get();
+
+        // Calculate high-level stats for the client
+        $totalTasks = 0;
+        $completedTasks = 0;
+
+        foreach ($myProjects as $project) {
+            $totalTasks += $project->tasks->count();
+            $completedTasks += $project->tasks->where('status', 'done')->count();
+        }
+
+        $stats = [
+            'total_projects' => $myProjects->count(),
+            'active_projects' => $myProjects->where('status', 'active')->count(),
+            'completed_projects' => $myProjects->where('status', 'completed')->count(),
+            'overall_progress' => $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0,
+        ];
+
         return Inertia::render('Client/Dashboard', [
-            'stats' => [
-                'total_projects' => Project::count(), // Or filter by client_id if you have it
-                'active_projects' => Project::where('status', 'active')->count(),
-                'completed_projects' => Project::where('status', 'completed')->count(),
-            ],
-            // 5 Most recent projects
-            'recent_projects' => Project::with('owner')
+            'stats' => $stats,
+            'recent_projects' => Project::where('client_id', $userId)
                 ->latest()
-                ->take(5)
-                ->get()
-                ->map(fn($p) => [
-                    'id' => $p->id,
-                    'name' => $p->name,
-                    'status' => $p->status,
-                    'progress' => $this->calculateProgress($p), // Helper calculation
-                    'due_date' => $p->due_date,
-                ]),
+                ->take(4)
+                ->get(['id', 'name', 'status', 'start_date', 'end_date']),
         ]);
     }
 
     public function index(Request $request)
     {
-        $query = Project::query()->with('owner');
+        $query = Project::where('client_id', auth()->id());
 
         if ($request->search) {
-            $query->where('name', 'like', '%'.$request->search.'%');
+            $query->where('name', 'like', '%' . $request->search . '%');
         }
 
         return Inertia::render('Client/Projects/Index', [
-            'projects' => $query->latest()->paginate(10)->withQueryString(),
+            'projects' => $query->latest()->paginate(12)->withQueryString(),
             'filters' => $request->only(['search']),
         ]);
     }
 
     public function show(Project $project)
     {
-        // Load tasks with assignees
-        return Inertia::render('Client/Projects/Show', [
-            'project' => $project->load('owner'),
-            'tasks' => $project->tasks()->with('assignee')->get(),
-        ]);
-    }
+        // SECURITY: Ensure the client actually owns this project
+        abort_if($project->client_id !== auth()->id(), 403, 'Unauthorized access to project.');
 
-    // Helper to calculate % completion based on tasks
-    private function calculateProgress($project)
-    {
-        $total = $project->tasks()->count();
-        if ($total === 0) return 0;
-        $done = $project->tasks()->where('status', 'done')->count();
-        return round(($done / $total) * 100);
+        // Load sprints and tasks for a transparent progress view
+        $project->load(['sprints', 'tasks' => function($q) {
+            // Only show them tasks that are somewhat relevant (maybe exclude internal bugs if you want, but we will load all for progress tracking)
+            $q->select('id', 'project_id', 'sprint_id', 'title', 'status', 'priority', 'type', 'due_date');
+        }]);
+
+        $totalTasks = $project->tasks->count();
+        $completedTasks = $project->tasks->where('status', 'done')->count();
+        $progress = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
+
+        return Inertia::render('Client/Projects/Show', [
+            'project' => $project,
+            'stats' => [
+                'total_tasks' => $totalTasks,
+                'completed_tasks' => $completedTasks,
+                'progress' => $progress,
+                'sprints_count' => $project->sprints->count(),
+            ]
+        ]);
     }
 }

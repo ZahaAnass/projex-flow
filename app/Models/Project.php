@@ -13,12 +13,7 @@ class Project extends Model
     use HasFactory, SoftDeletes, HasUuids;
 
     protected $fillable = [
-        'name',
-        'description',
-        'status',
-        'start_date',
-        'end_date',
-        'owner_id'
+        'name', 'description', 'status', 'owner_id', 'client_id', 'start_date', 'end_date'
     ];
 
     protected $casts = [
@@ -58,5 +53,10 @@ class Project extends Model
     public function activities(): MorphMany
     {
         return $this->morphMany(ActivityLog::class, 'subject');
+    }
+
+    public function client()
+    {
+        return $this->belongsTo(User::class, 'client_id');
     }
 }

@@ -12,21 +12,28 @@ import { BreadcrumbItem } from '@/types';
 import { toast } from "sonner";
 import { ArrowLeft, RefreshCw, Briefcase } from 'lucide-react';
 
-export default function ProjectEdit({ project, owners }: any) {
+export default function ProjectEdit({ project, owners, clients }: any) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Admin', href: '/admin/dashboard' },
         { title: 'Projects', href: '/admin/projects' },
         { title: 'Edit', href: `/admin/projects/${project.id}/edit` },
     ];
 
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors, transform } = useForm({
         name: project.name,
         description: project.description || '',
         status: project.status,
         owner_id: String(project.owner_id),
+        client_id: project.client_id ? String(project.client_id) : 'none', // Set initial value correctly
         start_date: project.start_date ? project.start_date.split('T')[0] : '',
         end_date: project.end_date ? project.end_date.split('T')[0] : '',
     });
+
+    // Transforms 'none' into an actual null value for the database
+    transform((currentData) => ({
+        ...currentData,
+        client_id: currentData.client_id === 'none' ? null : currentData.client_id,
+    }));
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
@@ -78,6 +85,18 @@ export default function ProjectEdit({ project, owners }: any) {
                                             </SelectContent>
                                         </Select>
                                         <InputError message={errors.owner_id} />
+                                    </div>
+                                    {/* NEW CLIENT DROPDOWN */}
+                                    <div className="space-y-3 md:col-span-2 lg:col-span-1">
+                                        <Label className="text-base">Assign Client <span className="text-muted-foreground font-normal">(Optional)</span></Label>
+                                        <Select value={data.client_id} onValueChange={(val) => setData('client_id', val)}>
+                                            <SelectTrigger className="h-12 text-base"><SelectValue placeholder="Select a client..." /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none" className="italic text-muted-foreground">Internal (No Client)</SelectItem>
+                                                {clients.map((c: any) => <SelectItem key={c.id} value={String(c.id)} className="text-base">{c.name}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                        <InputError message={errors.client_id} />
                                     </div>
                                 </div>
                                 <div className="space-y-3">

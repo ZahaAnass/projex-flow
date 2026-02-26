@@ -69,6 +69,7 @@ class DatabaseSeeder extends Seeder
         // 5. Create Projects (Owned by the Leader)
         $projects = Project::factory(25)->create([
             'owner_id' => $leader->id,
+            'client_id' => $client->id,
         ]);
 
         foreach ($projects as $project) {

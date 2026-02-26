@@ -30,6 +30,18 @@ Route::get('/', function () {
     return Inertia::render('welcome', ['canRegister' => Features::enabled(Features::registration())]);
 })->name('home');
 
+Route::get('/pricing', function () {
+    return Inertia::render('Pricing');
+})->name('pricing');
+
+Route::get('/about', function () {
+    return Inertia::render('About');
+})->name('about');
+
+Route::get('/contact', function () {
+    return Inertia::render('Contact');
+})->name('contact');
+
 Route::middleware(['auth'])->group(function () {
 
     // Global Dashboard Redirection
