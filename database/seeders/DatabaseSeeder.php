@@ -17,11 +17,12 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Create Spatie Roles (Professional Way)
-        $roleAdmin  = Role::create(['name' => 'admin']);
-        $roleLeader = Role::create(['name' => 'team_leader']);
-        $roleUser   = Role::create(['name' => 'user']);
-        $roleClient = Role::create(['name' => 'client']);
+        // 1. Create Spatie Roles (Safe Creation)
+
+$roleAdmin  = Role::firstOrCreate(['name' => 'admin']);
+$roleLeader = Role::firstOrCreate(['name' => 'team_leader']);
+$roleUser   = Role::firstOrCreate(['name' => 'user']);
+$roleClient = Role::firstOrCreate(['name' => 'client']);
 
         // 2. Create Specific Users and Assign Roles
 
