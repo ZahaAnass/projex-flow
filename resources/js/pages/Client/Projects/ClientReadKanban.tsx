@@ -57,7 +57,6 @@ export default function ClientReadKanban({ tasks }: { tasks: Task[] }) {
     );
 }
 
-// Simple Card Component (No Sortable/Draggable logic)
 function ReadOnlyCard({ task }: { task: Task }) {
     const getPriorityColor = (p: string) => {
         const map: any = {

@@ -11,7 +11,6 @@ class TaskController extends Controller
 {
     public function index(Request $request)
     {
-        // SCOPE: Strictly tasks assigned to the logged-in user!
         $query = Task::where('assigned_to', auth()->id())->with(['project', 'sprint']);
 
         if ($request->search) $query->where('title', 'like', '%'.$request->search.'%');
@@ -26,10 +25,8 @@ class TaskController extends Controller
 
     public function update(Request $request, Task $task)
     {
-        // SECURITY: Ensure the user is only updating a task actually assigned to them
         abort_if($task->assigned_to !== auth()->id(), 403, 'You can only update your own tasks.');
 
-        // Users are usually only allowed to change the status (moving it across the Kanban board)
         $validated = $request->validate([
             'status' => 'required|in:todo,in_progress,review,done',
         ]);

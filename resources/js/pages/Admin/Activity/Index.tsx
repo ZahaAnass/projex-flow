@@ -20,7 +20,6 @@ export default function ActivityLogIndex({ activities, filters }: any) {
         router.get("/admin/activities", { search: q }, { preserveState: true, replace: true });
     }, 500)).current;
 
-    // Helper to format action badges
     const getActionBadge = (action: string) => {
         const lowerAction = action.toLowerCase();
         if (lowerAction.includes('create')) {
@@ -38,14 +37,12 @@ export default function ActivityLogIndex({ activities, filters }: any) {
         return <Badge variant="outline" className="uppercase">{action}</Badge>;
     };
 
-    // Helper to clean up "App\Models\Task" into just "Task"
     const formatSubjectType = (subjectType: string) => {
         if (!subjectType) return 'System';
         const parts = subjectType.split('\\');
         return parts[parts.length - 1];
     };
 
-    // Helper to format date nicely
     const formatDate = (dateString: string) => {
         const d = new Date(dateString);
         return d.toLocaleString(undefined, {

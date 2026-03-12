@@ -115,7 +115,6 @@ export default function ProjectShow({ project, stats }: any) {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="flex items-end h-[68px]">
-                            {/* We will route this to a filtered Kanban view later */}
                             <Button className="w-full" asChild>
                                 <Link href={`/admin/tasks?project_id=${project.id}`}>Open Project Board</Link>
                             </Button>

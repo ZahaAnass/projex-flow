@@ -21,10 +21,6 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
-// Admin Controllers
-// Kept as is if shared
-
-// Other Roles
 
 Route::get('/', function () {
     return Inertia::render('welcome', ['canRegister' => Features::enabled(Features::registration())]);
@@ -44,7 +40,6 @@ Route::get('/contact', function () {
 
 Route::middleware(['auth'])->group(function () {
 
-    // Global Dashboard Redirection
     Route::get('/dashboard', function () {
         $role = auth()->user()->getRoleNames()->first();
         return match($role) {
@@ -55,11 +50,6 @@ Route::middleware(['auth'])->group(function () {
         };
     })->name('dashboard');
 
-    /*
-    |--------------------------------------------------------------------------
-    | ADMIN ROUTES
-    |--------------------------------------------------------------------------
-    */
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -67,22 +57,15 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('projects', ProjectController::class);
         Route::resource('tasks', TaskController::class);
 
-        // Professional Features
         Route::resource('sprints', SprintController::class);
         Route::get('/time-entries', [TimeEntryController::class, 'index'])->name('time-entries.index');
         Route::get('/activities', [ActivityLogController::class, 'index'])->name('activities.index');
         Route::get('/roles', [RoleController::class, 'index'])->name('roles');
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | TEAM LEADER ROUTES
-    |--------------------------------------------------------------------------
-    */
     Route::middleware(['auth', 'role:team_leader'])->prefix('leader')->name('leader.')->group(function () {
         Route::get('/dashboard', [TeamLeaderDashboardController::class, 'index'])->name('dashboard');
 
-        // The Scoped Resource Routes
         Route::resource('projects', TeamLeaderProjectController::class);
         Route::resource('sprints', TeamLeaderSprintController::class);
         Route::resource('tasks', TeamLeaderTaskController::class);
@@ -91,27 +74,15 @@ Route::middleware(['auth'])->group(function () {
 
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | USER ROUTES
-    |--------------------------------------------------------------------------
-    */
     Route::middleware(['auth', 'role:user'])->prefix('user')->name('user.')->group(function () {
         Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('dashboard');
 
-        // Users only need to view and update tasks (not create or delete them)
         Route::get('/tasks', [UserTaskController::class, 'index'])->name('tasks.index');
         Route::put('/tasks/{task}', [UserTaskController::class, 'update'])->name('tasks.update');
 
-        // Users need full control over their own time logs
         Route::resource('time-entries', UserTimeEntryController::class)->except(['edit', 'show']);
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | CLIENT ROUTES
-    |--------------------------------------------------------------------------
-    */
     Route::middleware('role:client')->prefix('client')->name('client.')->group(function () {
         Route::get('/dashboard', [ClientProjectController::class, 'dashboard'])->name('dashboard');
         Route::get('/projects', [ClientProjectController::class, 'index'])->name('projects.index');

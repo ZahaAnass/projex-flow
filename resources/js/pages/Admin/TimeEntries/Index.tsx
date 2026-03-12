@@ -20,7 +20,6 @@ export default function TimeEntriesIndex({ entries, filters }: any) {
         router.get("/admin/time-entries", { search: q }, { preserveState: true, replace: true });
     }, 500)).current;
 
-    // Helper to convert minutes into hours and minutes
     const formatDuration = (totalMinutes: number) => {
         const hours = Math.floor(totalMinutes / 60);
         const minutes = totalMinutes % 60;

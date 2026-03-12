@@ -190,9 +190,7 @@ export default function TasksKanban({ tasks: paginatedTasks }: { tasks: Paginate
     };
 
     return (
-        // FIX 1: Added min-h-0 to ensure flex children don't overflow the screen
         <div className="flex flex-col h-full space-y-4 min-h-0">
-            {/* FIX 2: Added 'flex' here so 'flex-col' actually works and constrains the column height! */}
             <div className="relative flex flex-1 w-full flex-col overflow-hidden bg-background/30 rounded-xl p-4 md:p-6 border border-border/40 min-h-0">
 
                 <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden rounded-xl">
@@ -288,7 +286,6 @@ function BoardColumn({ column, tasks, isOverlay, onDeleteTask }: BoardColumnProp
                 </div>
             </div>
 
-            {/* FIX 3: Added custom scrollbar styles so overflowing tasks are neatly scrollable inside the column */}
             <div className="relative z-10 flex flex-1 flex-col gap-3 p-3 overflow-y-auto min-h-0 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-border/80 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
                 <SortableContext items={tasksIds} strategy={verticalListSortingStrategy}>
                     {tasks.map((task) => (

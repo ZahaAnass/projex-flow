@@ -24,12 +24,11 @@ export default function ProjectEdit({ project, owners, clients }: any) {
         description: project.description || '',
         status: project.status,
         owner_id: String(project.owner_id),
-        client_id: project.client_id ? String(project.client_id) : 'none', // Set initial value correctly
+        client_id: project.client_id ? String(project.client_id) : 'none',
         start_date: project.start_date ? project.start_date.split('T')[0] : '',
         end_date: project.end_date ? project.end_date.split('T')[0] : '',
     });
 
-    // Transforms 'none' into an actual null value for the database
     transform((currentData) => ({
         ...currentData,
         client_id: currentData.client_id === 'none' ? null : currentData.client_id,

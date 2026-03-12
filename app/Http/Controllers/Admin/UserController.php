@@ -15,7 +15,7 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::query()->with('roles'); // Eager load roles
+        $query = User::query()->with('roles'); 
 
         if ($request->search) {
             $query->where(function($q) use ($request) {
@@ -25,7 +25,7 @@ class UserController extends Controller
         }
 
         if ($request->role && $request->role !== 'all') {
-            $query->role($request->role); // Spatie Scope
+            $query->role($request->role); 
         }
 
         return Inertia::render('Admin/Users/Index', [
@@ -35,11 +35,11 @@ class UserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'status' => $user->status,
-                'role' => $user->roles->first()?->name ?? 'user', // Get Spatie Role
+                'role' => $user->roles->first()?->name ?? 'user', 
                 'created_at' => $user->created_at->format('Y-m-d'),
             ])->withQueryString(),
             'filters' => $request->only(['search', 'role']),
-            'roles' => Role::pluck('name'), // Pass available roles for filter
+            'roles' => Role::pluck('name'), 
         ]);
     }
 
@@ -60,7 +60,7 @@ class UserController extends Controller
             'status' => 'active',
         ]);
 
-        $user->assignRole($request->role); // Spatie Assign
+        $user->assignRole($request->role); 
 
         return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
     }
@@ -76,12 +76,11 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, User $user)
     {
-        // Only take non-password fields
         $data = $request->only(['name', 'email', 'phone', 'status']);
 
         $user->update($data);
-        $user->syncRoles([$request->role]); // Spatie Sync
-
+        $user->syncRoles([$request->role]); 
+        
         return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }
 

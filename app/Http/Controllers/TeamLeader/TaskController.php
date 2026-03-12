@@ -18,7 +18,6 @@ class TaskController extends Controller
 
     public function index(Request $request)
     {
-        // SCOPE: Only tasks inside the leader's projects
         $query = Task::whereIn('project_id', $this->getMyProjectIds())->with(['project', 'assignee', 'sprint']);
 
         if ($request->search) $query->where('title', 'like', '%'.$request->search.'%');
@@ -77,10 +76,8 @@ class TaskController extends Controller
 
     public function update(Request $request, Task $task)
     {
-        // 1. Security Check
         abort_if(!in_array($task->project_id, $this->getMyProjectIds()->toArray()), 403);
 
-        // 2. Full Validation Rules
         $validated = $request->validate([
             'title' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
@@ -94,16 +91,12 @@ class TaskController extends Controller
             'due_date' => 'nullable|date',
         ]);
 
-        // 3. Update the Database
         $task->update($validated);
 
-        // 4. Smart Redirect
-        // If the request came from the Edit page, send them back to the Task list.
         if (str_contains(url()->previous(), '/edit')) {
             return redirect()->route('leader.tasks.index')->with('success', 'Task updated successfully.');
         }
 
-        // If it came from the Kanban board drag-and-drop, just return back() to preserve filters.
         return back()->with('success', 'Task updated successfully.');
     }
 

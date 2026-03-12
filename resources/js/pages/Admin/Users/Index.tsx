@@ -13,7 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { BreadcrumbItem } from '@/types';
 import InertiaPagination from "@/components/inertia-pagination";
 import DeleteDialog from "@/components/delete-dialog";
-import { toast } from "sonner"; // Imported toast
+import { toast } from "sonner"; 
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Admin', href: '/admin/dashboard' },
@@ -21,10 +21,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function UsersIndex({ users, filters, roles, auth }: any) {
-    // Catch flash messages from Laravel
     const { flash } = usePage().props as any;
 
-    // Trigger toast when flash message exists
     useEffect(() => {
         if (flash?.success) {
             toast.success(flash.success);

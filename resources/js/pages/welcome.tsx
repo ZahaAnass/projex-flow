@@ -7,7 +7,6 @@ import {
 } from "lucide-react";
 import { AreaChart, Area, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
-// Mock Data for the Chart
 const chartData = [
     { name: 'Mon', tasks: 12 }, { name: 'Tue', tasks: 18 }, { name: 'Wed', tasks: 15 },
     { name: 'Thu', tasks: 25 }, { name: 'Fri', tasks: 20 }, { name: 'Sat', tasks: 32 }, { name: 'Sun', tasks: 28 },

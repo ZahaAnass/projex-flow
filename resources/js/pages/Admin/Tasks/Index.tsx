@@ -42,7 +42,6 @@ export default function TasksIndex({ tasks, filters }: any) {
         router.delete(`/admin/tasks/${id}`, { preserveScroll: true });
     }
 
-    // MATCHED KANBAN COLORS FOR PERFECT CONSISTENCY
     const getPriorityColor = (p: string) => {
         switch (p) {
             case 'low': return "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200/50 dark:border-blue-900/50";
@@ -144,7 +143,6 @@ export default function TasksIndex({ tasks, filters }: any) {
                                                             <Badge variant={task.status === 'done' ? 'default' : 'secondary'} className="capitalize shadow-sm">
                                                                 {task.status.replace('_', ' ')}
                                                             </Badge>
-                                                            {/* UPDATED: Priority is now a beautiful colored Badge just like the Kanban board */}
                                                             <Badge variant="outline" className={`px-1.5 py-0.5 text-[10px] uppercase tracking-wider font-bold ${getPriorityColor(task.priority)}`}>
                                                                 {task.priority}
                                                             </Badge>

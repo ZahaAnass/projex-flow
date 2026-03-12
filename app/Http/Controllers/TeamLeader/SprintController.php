@@ -16,7 +16,6 @@ class SprintController extends Controller
 
     public function index(Request $request)
     {
-        // SCOPE: Only sprints that belong to the leader's projects
         $query = Sprint::whereIn('project_id', $this->getMyProjectIds())->with('project');
 
         if ($request->search) $query->where('name', 'like', '%'.$request->search.'%');
@@ -31,7 +30,6 @@ class SprintController extends Controller
     public function create()
     {
         return Inertia::render('TeamLeader/Sprints/Create', [
-            // Only load THEIR projects in the dropdown
             'projects' => Project::where('owner_id', auth()->id())->select('id', 'name')->get(),
         ]);
     }
@@ -63,10 +61,8 @@ class SprintController extends Controller
 
     public function update(Request $request, Sprint $sprint)
     {
-        // 1. Security Check
         abort_if(!in_array($sprint->project_id, $this->getMyProjectIds()->toArray()), 403);
 
-        // 2. Full Validation Rules
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'goal' => 'nullable|string',
@@ -76,10 +72,8 @@ class SprintController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
-        // 3. Update the Database
         $sprint->update($validated);
 
-        // 4. Return correct response
         return redirect()->route('leader.sprints.index')->with('success', 'Sprint updated successfully.');
     }
 }

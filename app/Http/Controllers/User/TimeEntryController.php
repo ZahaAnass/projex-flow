@@ -12,7 +12,6 @@ class TimeEntryController extends Controller
 {
     public function index(Request $request)
     {
-        // SCOPE: Only show time logs created by this user
         $query = TimeEntry::where('user_id', auth()->id())->with('task.project');
 
         if ($request->search) {
@@ -27,11 +26,9 @@ class TimeEntryController extends Controller
         ]);
     }
 
-    // NEW: Add the create method here!
     public function create()
     {
         return Inertia::render('User/TimeEntries/Create', [
-            // Pass the user's active tasks so they can select one from a dropdown
             'my_tasks' => Task::where('assigned_to', auth()->id())
                 ->where('status', '!=', 'done')
                 ->select('id', 'title')
@@ -54,7 +51,6 @@ class TimeEntryController extends Controller
         $validated['user_id'] = auth()->id();
         TimeEntry::create($validated);
 
-        // CHANGE: Redirect back to the index table after creating
         return redirect()->route('user.time-entries.index')->with('success', 'Time logged successfully.');
     }
 

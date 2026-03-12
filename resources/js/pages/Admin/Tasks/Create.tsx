@@ -32,10 +32,8 @@ export default function TaskCreate({ projects, users, sprints }: any) {
         due_date: '',
     });
 
-    // Dynamically filter Sprints based on the selected Project
     const availableSprints = sprints.filter((s: any) => s.project_id === Number(data.project_id));
 
-    // FIX: Use Inertia's transform to clean up "none" and empty strings into nulls
     transform((currentData) => ({
         ...currentData,
         sprint_id: currentData.sprint_id === 'none' ? null : currentData.sprint_id,
@@ -47,7 +45,6 @@ export default function TaskCreate({ projects, users, sprints }: any) {
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        // FIX: Just call post() directly. Inertia automatically uses the transformed data.
         post('/admin/tasks', {
             onError: () => toast.error("Please check the form for errors.", { className: "bg-red-50 text-red-600 border-red-200" }),
         });

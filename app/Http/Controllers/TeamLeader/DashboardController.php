@@ -15,7 +15,6 @@ class DashboardController extends Controller
     {
         $userId = auth()->id();
 
-        // Get the IDs of projects owned by this leader to scope tasks and sprints
         $myProjectIds = Project::where('owner_id', $userId)->pluck('id');
 
         $stats = [

@@ -21,7 +21,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function UserTasksIndex({ tasks, filters }: any) {
     const { flash } = usePage().props as any;
-    // Default to Kanban view for the user, as it's the most useful for executing tasks!
     const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban');
 
     useEffect(() => {

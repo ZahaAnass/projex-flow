@@ -15,11 +15,11 @@ export default function Pricing({ auth }: any) {
             {/* ================= HERO ================= */}
             <section className="relative pt-32 pb-20 overflow-hidden">
                 {/* Grid background */}
-                <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px]" />
+                <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-size-[24px_24px]" />
 
                 {/* Glow */}
                 <div className="absolute left-1/2 top-0 -z-10 -translate-x-1/2 blur-3xl opacity-40 dark:opacity-20 pointer-events-none">
-                    <div className="aspect-[1155/678] w-[60rem] bg-gradient-to-tr from-blue-600 to-indigo-500" />
+                    <div className="aspect-1155/678 w-240 bg-linear-to-tr from-blue-600 to-indigo-500" />
                 </div>
 
                 <div className="max-w-4xl mx-auto px-6 text-center pt-20">
@@ -55,15 +55,12 @@ export default function Pricing({ auth }: any) {
             </section>
 
             {/* ================= PRICING CARDS ================= */}
-            {/* Added immense padding-bottom (pb-32) to ensure it NEVER overlaps the FAQ */}
             <section className="pb-32 relative z-10">
                 <div className="max-w-7xl mx-auto px-6">
 
-                    {/* Added py-8 to the grid container to give the translated middle card room to breathe */}
                     <div className="grid lg:grid-cols-3 gap-8 items-stretch py-8">
 
                         {/* Starter */}
-                        {/* Fixed: Solid dark:bg-zinc-950 background so it doesn't look transparent/muddy */}
                         <div className="relative flex flex-col p-8 rounded-3xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-lg transition-all duration-300">
                             <div className="mb-6">
                                 <h3 className="text-2xl font-bold text-zinc-900 dark:text-white">Starter</h3>
@@ -75,7 +72,7 @@ export default function Pricing({ auth }: any) {
                                     <span className="text-6xl font-extrabold text-zinc-900 dark:text-white">$0</span>
                                     <span className="text-zinc-500 dark:text-zinc-400 font-medium">/forever</span>
                                 </div>
-                                <div className="h-5 mt-2"></div> {/* Empty space placeholder to match other cards */}
+                                <div className="h-5 mt-2"></div>
                             </div>
 
                             <Link href="/register" className="mb-8">
@@ -92,8 +89,6 @@ export default function Pricing({ auth }: any) {
                             </ul>
                         </div>
 
-                        {/* Professional */}
-                        {/* Fixed: Removed scale-105 which caused the overlap. Using lg:-translate-y-4 instead to safely elevate it. */}
                         <div className="relative flex flex-col p-8 rounded-3xl bg-white dark:bg-zinc-950 border-2 border-blue-600 shadow-2xl shadow-blue-500/10 transform lg:-translate-y-4">
 
                             <div className="mb-6 mt-2">
@@ -106,7 +101,6 @@ export default function Pricing({ auth }: any) {
                                     <span className="text-6xl font-extrabold text-zinc-900 dark:text-white">${yearly ? "23" : "29"}</span>
                                     <span className="text-zinc-500 dark:text-zinc-400 font-medium">/month</span>
                                 </div>
-                                {/* Math Clarity Fix */}
                                 <div className="h-5 mt-2">
                                     {yearly && <span className="text-sm font-bold text-blue-600 dark:text-blue-400">Billed $276 annually</span>}
                                 </div>
@@ -164,7 +158,6 @@ export default function Pricing({ auth }: any) {
             </section>
 
             {/* ================= FAQ ================= */}
-            {/* FIXED: Replaced dark:bg-zinc-950/50 with a solid dark:bg-zinc-900 */}
             <section className="py-24 bg-zinc-50 dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 transition-colors duration-300">
                 <div className="max-w-4xl mx-auto px-6">
 

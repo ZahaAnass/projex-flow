@@ -32,7 +32,6 @@ class ProjectController extends Controller
     {
         return Inertia::render('Admin/Projects/Create', [
             'owners' => User::role(['admin', 'team_leader'])->select('id', 'name')->get(),
-            // Pass the clients to the view
             'clients' => User::role('client')->select('id', 'name')->get(),
         ]);
     }
@@ -77,7 +76,6 @@ class ProjectController extends Controller
         return Inertia::render('Admin/Projects/Edit', [
             'project' => $project,
             'owners' => User::role(['admin', 'team_leader'])->select('id', 'name')->get(),
-            // Pass the clients to the view
             'clients' => User::role('client')->select('id', 'name')->get(),
         ]);
     }

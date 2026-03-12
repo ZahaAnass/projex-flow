@@ -10,7 +10,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Roles & Permissions', href: '/admin/roles' },
 ];
 
-// Static creative data for the roles
 const rolesData = [
     {
         id: 'admin',

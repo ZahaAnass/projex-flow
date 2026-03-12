@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Spatie\Permission\Traits\HasRoles; // Install spatie/laravel-permission for this
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
@@ -35,7 +34,6 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    // Specify that 'uuid' is the unique identifier column for routes
     public function uniqueIds()
     {
         return ['uuid'];
@@ -43,25 +41,21 @@ class User extends Authenticatable
 
     // --- Relationships ---
 
-    // Projects managed/owned by this user
     public function ownedProjects()
     {
         return $this->hasMany(Project::class, 'owner_id');
     }
 
-    // Tasks assigned to this user to work on
     public function assignedTasks()
     {
         return $this->hasMany(Task::class, 'assigned_to');
     }
 
-    // Tasks created by this user
     public function createdTasks()
     {
         return $this->hasMany(Task::class, 'created_by');
     }
 
-    // Time logs
     public function timeEntries()
     {
         return $this->hasMany(TimeEntry::class);

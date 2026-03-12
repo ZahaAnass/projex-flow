@@ -43,13 +43,11 @@ class Project extends Model
         return $this->hasMany(Task::class);
     }
 
-    // Polymorphic attachments (files specific to the project, e.g., specs)
     public function attachments(): MorphMany
     {
         return $this->morphMany(Attachment::class, 'attachable');
     }
 
-    // Polymorphic activity logs
     public function activities(): MorphMany
     {
         return $this->morphMany(ActivityLog::class, 'subject');

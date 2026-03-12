@@ -18,7 +18,7 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $query = Task::query()
-            ->with(['project', 'assignee']); // Eager load relationships
+            ->with(['project', 'assignee']); 
 
         if ($request->search) {
             $query->where('title', 'like', '%'.$request->search.'%');
@@ -45,7 +45,6 @@ class TaskController extends Controller
     {
         return Inertia::render('Admin/Tasks/Create', [
             'projects' => Project::select('id', 'name')->get(),
-            // Get users who can perform tasks (Leaders + Users)
             'users' => User::whereIn('role', ['team_leader', 'user'])->select('id', 'name')->get(),
         ]);
     }

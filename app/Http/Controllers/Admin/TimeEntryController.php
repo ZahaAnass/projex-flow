@@ -11,7 +11,6 @@ class TimeEntryController extends Controller
 {
     public function index(Request $request)
     {
-        // Eager load the user and the task (along with the task's project)
         $query = TimeEntry::query()->with(['user:id,name', 'task.project:id,name']);
 
         if ($request->search) {

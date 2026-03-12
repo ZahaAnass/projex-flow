@@ -13,10 +13,8 @@ class ClientProjectController extends Controller
     {
         $userId = auth()->id();
 
-        // Scope: Only projects assigned to this client
         $myProjects = Project::where('client_id', $userId)->with('tasks')->get();
 
-        // Calculate high-level stats for the client
         $totalTasks = 0;
         $completedTasks = 0;
 
@@ -57,12 +55,9 @@ class ClientProjectController extends Controller
 
     public function show(Project $project)
     {
-        // SECURITY: Ensure the client actually owns this project
         abort_if($project->client_id !== auth()->id(), 403, 'Unauthorized access to project.');
 
-        // Load sprints and tasks for a transparent progress view
         $project->load(['sprints', 'tasks' => function($q) {
-            // Only show them tasks that are somewhat relevant (maybe exclude internal bugs if you want, but we will load all for progress tracking)
             $q->select('id', 'project_id', 'sprint_id', 'title', 'status', 'priority', 'type', 'due_date');
         }]);
 

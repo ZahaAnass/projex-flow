@@ -100,7 +100,6 @@ export default function TasksKanban({ tasks: paginatedTasks }: { tasks: Paginate
         const activeTask = tasks.find(t => t.id === activeId);
 
         if (activeTask) {
-            // USER ROUTE: Update Status Only
             router.put(`/user/tasks/${activeTask.id}`, { status: activeTask.status }, {
                 preserveScroll: true,
                 onError: () => toast.error("Failed to sync move."),
@@ -162,7 +161,6 @@ function BoardColumn({ column, tasks, isOverlay }: any) {
                 <SortableContext items={tasksIds} strategy={verticalListSortingStrategy}>
                     {tasks.map((task: any) => <TaskCard key={task.id} task={task} />)}
                 </SortableContext>
-                {/* Removed the 'Add Task' button for standard users */}
             </div>
         </div>
     );
@@ -190,7 +188,6 @@ function TaskCard({ task, isOverlay }: any) {
                     <Badge variant="outline" className="border px-1.5 py-0.5 text-[10px] uppercase tracking-wider backdrop-blur-sm bg-muted/50 text-muted-foreground">{task.type || 'task'}</Badge>
                     {task.project && <Badge variant="secondary" className="bg-secondary/50 text-secondary-foreground/80 px-1.5 py-0.5 text-[10px] backdrop-blur-sm truncate max-w-[100px]">{task.project.name}</Badge>}
                 </div>
-                {/* Removed the 'Edit/Delete' dropdown menu for standard users */}
             </div>
             <p className="relative z-10 text-sm font-medium text-foreground leading-snug line-clamp-2">{task.title}</p>
             <div className="relative z-10 flex items-center justify-between pt-2 border-t border-border/30">

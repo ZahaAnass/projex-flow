@@ -114,8 +114,6 @@ export default function AdminDashboard({
                     </Card>
                 </div>
 
-                {/* Main Content Grid */}
-                {/* FIXED: 2 columns instead of 7-column split */}
                 <div className="grid gap-6 lg:grid-cols-2">
 
                     {/* Recent Projects */}

@@ -11,7 +11,6 @@ class ProjectController extends Controller
 {
     public function index(Request $request)
     {
-        // SCOPE: Only projects owned by the logged-in leader
         $query = Project::where('owner_id', auth()->id())->with('owner');
 
         if ($request->search) $query->where('name', 'like', '%'.$request->search.'%');
@@ -26,7 +25,6 @@ class ProjectController extends Controller
     public function create()
     {
         return Inertia::render('TeamLeader/Projects/Create', [
-            // They can't assign other managers, they are the manager automatically
             'owners' => [['id' => auth()->id(), 'name' => auth()->user()->name]],
         ]);
     }
@@ -41,7 +39,6 @@ class ProjectController extends Controller
             'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
 
-        // Auto-assign ownership to this team leader
         $validated['owner_id'] = auth()->id();
 
         Project::create($validated);
@@ -50,7 +47,6 @@ class ProjectController extends Controller
 
     public function edit(Project $project)
     {
-        // SECURITY: Block if they try to edit someone else's project
         abort_if($project->owner_id !== auth()->id(), 403, 'Unauthorized action.');
 
         return Inertia::render('TeamLeader/Projects/Edit', [
@@ -75,7 +71,6 @@ class ProjectController extends Controller
         return redirect()->route('leader.projects.index')->with('success', 'Project updated.');
     }
 
-    // Usually, Team Leaders shouldn't delete projects, but if you want them to:
     public function destroy(Project $project)
     {
         abort_if($project->owner_id !== auth()->id(), 403);
@@ -85,13 +80,10 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
-        // SECURITY: Ensure the Leader actually owns this project
         abort_if($project->owner_id !== auth()->id(), 403, 'Unauthorized action.');
 
-        // Load relationships
         $project->load(['owner', 'sprints', 'tasks']);
 
-        // Calculate basic stats for the view page
         $totalTasks = $project->tasks->count();
         $completedTasks = $project->tasks->where('status', 'done')->count();
         $progress = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;

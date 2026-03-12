@@ -24,12 +24,11 @@ export default function ProjectCreate({ owners, clients }: any) {
         description: '',
         status: 'pending',
         owner_id: '',
-        client_id: 'none', // Added for the new dropdown
+        client_id: 'none',
         start_date: '',
         end_date: '',
     });
 
-    // Transforms 'none' into an actual null value for the database
     transform((currentData) => ({
         ...currentData,
         client_id: currentData.client_id === 'none' ? null : currentData.client_id,
