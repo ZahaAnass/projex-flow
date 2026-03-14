@@ -4,7 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import { debounce } from "lodash";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, MoreHorizontal, Edit, Trash2, LayoutList, KanbanSquare, CheckSquare } from "lucide-react";
+import {
+    Search,
+    MoreHorizontal,
+    Edit,
+    Trash2,
+    LayoutList,
+    KanbanSquare,
+    CheckSquare,
+    Download,
+} from 'lucide-react';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -24,6 +33,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function TasksIndex({ tasks, filters }: any) {
     const { flash } = usePage().props as any;
     const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+
+    const queryParams = new URLSearchParams(filters as any).toString();
+    const exportUrl = `/admin/tasks/export-pdf?${queryParams}`;
 
     useEffect(() => {
         if (flash?.success) toast.success(flash.success);
