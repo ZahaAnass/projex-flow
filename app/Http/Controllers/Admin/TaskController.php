@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\Sprint;
 use App\Models\Task;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -93,6 +94,9 @@ class TaskController extends Controller
 
     public function exportPdf(Request $request)
     {
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
+
         $query = Task::query()->with(['project', 'assignee', 'sprint']);
 
         if ($request->search) $query->where('title', 'like', '%'.$request->search.'%');
