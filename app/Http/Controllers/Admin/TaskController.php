@@ -90,4 +90,19 @@ class TaskController extends Controller
         $task->delete();
         return back()->with('success', 'Task deleted.');
     }
+
+    public function exportPdf(Request $request)
+    {
+        $query = Task::query()->with(['project', 'assignee', 'sprint']);
+
+        if ($request->search) $query->where('title', 'like', '%'.$request->search.'%');
+        if ($request->status && $request->status !== 'all') $query->where('status', $request->status);
+        if ($request->priority && $request->priority !== 'all') $query->where('priority', $request->priority);
+
+        $tasks = $query->latest()->get();
+
+        $pdf = Pdf::loadView('pdf.tasks', ['tasks' => $tasks]);
+
+        return $pdf->download('tasks-report.pdf');
+    }
 }

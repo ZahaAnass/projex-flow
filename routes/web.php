@@ -55,6 +55,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::resource('users', UserController::class);
         Route::resource('projects', ProjectController::class);
+        Route::get('tasks/export-pdf', [TaskController::class, 'exportPdf'])->name('admin.tasks.export-pdf');
         Route::resource('tasks', TaskController::class);
 
         Route::resource('sprints', SprintController::class);

@@ -70,6 +70,11 @@ export default function TasksIndex({ tasks, filters }: any) {
                             <Button variant={viewMode === 'kanban' ? 'secondary' : 'ghost'} size="sm" onClick={() => setViewMode('kanban')} className="h-8">
                                 <KanbanSquare className="h-4 w-4 mr-2" /> Kanban
                             </Button>
+                            <Button asChild variant="outline" size="lg">
+                                <a href={exportUrl} target="_blank" rel="noreferrer">
+                                    <Download className="mr-2 h-4 w-4"/> Export PDF
+                                </a>
+                            </Button>
                         </div>
                         <Button asChild size="lg">
                             <Link href="/admin/tasks/create"><CheckSquare className="mr-2 h-4 w-4"/> New Task</Link>
