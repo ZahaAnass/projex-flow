@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { debounce } from "lodash";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, Activity, Clock, Database } from "lucide-react";
+import { Search, Activity, Clock, Globe } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { BreadcrumbItem } from '@/types';
@@ -12,7 +12,7 @@ import InertiaPagination from "@/components/inertia-pagination";
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Admin', href: '/admin/dashboard' },
-    { title: 'Activity Logs', href: '/admin/activities' },
+    { title: 'Network Traffic', href: '/admin/activities' },
 ];
 
 export default function ActivityLogIndex({ activities, filters }: any) {
@@ -20,62 +20,60 @@ export default function ActivityLogIndex({ activities, filters }: any) {
         router.get("/admin/activities", { search: q }, { preserveState: true, replace: true });
     }, 500)).current;
 
-    const getActionBadge = (action: string) => {
-        const lowerAction = action.toLowerCase();
-        if (lowerAction.includes('create')) {
-            return <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200">Created</Badge>;
+    // Helper to color code HTTP methods
+    const getMethodColor = (method: string) => {
+        switch (method) {
+            case 'GET': return 'bg-blue-500/10 text-blue-600 border-blue-200/50';
+            case 'POST': return 'bg-emerald-500/10 text-emerald-600 border-emerald-200/50';
+            case 'PUT':
+            case 'PATCH': return 'bg-amber-500/10 text-amber-600 border-amber-200/50';
+            case 'DELETE': return 'bg-red-500/10 text-red-600 border-red-200/50';
+            default: return 'bg-slate-500/10 text-slate-600 border-slate-200/50';
         }
-        if (lowerAction.includes('update')) {
-            return <Badge className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200">Updated</Badge>;
-        }
-        if (lowerAction.includes('delete')) {
-            return <Badge className="bg-red-100 text-red-800 border-red-200 hover:bg-red-200">Deleted</Badge>;
-        }
-        if (lowerAction.includes('login')) {
-            return <Badge className="bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-200">Login</Badge>;
-        }
-        return <Badge variant="outline" className="uppercase">{action}</Badge>;
     };
 
-    const formatSubjectType = (subjectType: string) => {
-        if (!subjectType) return 'System';
-        const parts = subjectType.split('\\');
-        return parts[parts.length - 1];
+    // Helper to color code Status Codes
+    const getStatusColor = (code: number) => {
+        if (code >= 200 && code < 300) return 'bg-emerald-500 text-white';
+        if (code >= 300 && code < 400) return 'bg-blue-500 text-white';
+        if (code >= 400 && code < 500) return 'bg-amber-500 text-white';
+        if (code >= 500) return 'bg-red-600 text-white';
+        return 'bg-zinc-500 text-white';
     };
 
     const formatDate = (dateString: string) => {
         const d = new Date(dateString);
         return d.toLocaleString(undefined, {
             month: 'short', day: 'numeric', year: 'numeric',
-            hour: '2-digit', minute: '2-digit'
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
         });
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="System Activity Logs" />
+            <Head title="Network Traffic Logs" />
             <div className="p-6 space-y-6 w-full">
 
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-3xl font-bold tracking-tight">System Audit Trail</h2>
-                        <p className="text-sm text-muted-foreground mt-1">Monitor all database modifications and user activities in real-time.</p>
+                        <h2 className="text-3xl font-bold tracking-tight">Network Traffic Logs</h2>
+                        <p className="text-sm text-muted-foreground mt-1">Monitor real-time HTTP requests, payloads, and response statuses.</p>
                     </div>
-                    <div className="p-3 bg-purple-500/10 text-purple-700 rounded-xl border border-purple-200 flex items-center gap-2 shadow-sm">
+                    <div className="p-3 bg-blue-500/10 text-blue-700 rounded-xl border border-blue-200 flex items-center gap-2 shadow-sm">
                         <Activity className="h-5 w-5 animate-pulse" />
-                        <span className="font-bold text-sm tracking-wide uppercase">Live Tracking</span>
+                        <span className="font-bold text-sm tracking-wide uppercase">Live Traffic Monitoring</span>
                     </div>
                 </div>
 
-                <Card className="shadow-sm w-full border-t-4 border-t-purple-500">
+                <Card className="shadow-sm w-full border-t-4 border-t-blue-500">
                     <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 bg-muted/10 border-b">
                         <div className="relative w-full sm:w-96">
                             <Input
                                 defaultValue={filters.search ?? ""}
                                 onChange={(e) => handleSearch(e.target.value)}
                                 className="peer ps-9 bg-background h-10"
-                                placeholder="Search by user, action, or model..."
+                                placeholder="Search by URL, method, or user..."
                             />
                             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground/80">
                                 <Search size={16} />
@@ -86,74 +84,84 @@ export default function ActivityLogIndex({ activities, filters }: any) {
                         <Table className="w-full">
                             <TableHeader>
                                 <TableRow className="bg-muted/5">
-                                    <TableHead className="pl-6 py-4 w-[200px]">Timestamp</TableHead>
+                                    <TableHead className="pl-6 py-4">Status & Method</TableHead>
+                                    <TableHead>Endpoint</TableHead>
                                     <TableHead>User</TableHead>
-                                    <TableHead>Action</TableHead>
-                                    <TableHead>Target Record</TableHead>
-                                    <TableHead className="text-right pr-6">Changes</TableHead>
+                                    <TableHead>Payload</TableHead>
+                                    <TableHead className="text-right pr-6">Performance</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {activities.data.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={5} className="text-center py-12 text-muted-foreground border-b-0">
-                                            No activity logs found.
+                                            No traffic logs found. Make sure your middleware is registered!
                                         </TableCell>
                                     </TableRow>
                                 ) : (
                                     activities.data.map((log: any) => (
                                         <TableRow key={log.id} className="hover:bg-muted/20 transition-colors">
-                                            {/* Timestamp */}
-                                            <TableCell className="pl-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center text-sm font-medium text-muted-foreground">
-                                                    <Clock className="h-3.5 w-3.5 mr-2 opacity-70" />
-                                                    {formatDate(log.created_at)}
+
+                                            {/* Status & Method */}
+                                            <TableCell className="pl-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <Badge className={`${getStatusColor(log.status_code)} font-bold shadow-sm`}>
+                                                        {log.status_code}
+                                                    </Badge>
+                                                    <Badge variant="outline" className={`${getMethodColor(log.method)} uppercase tracking-wider text-[10px] font-bold`}>
+                                                        {log.method}
+                                                    </Badge>
+                                                </div>
+                                            </TableCell>
+
+                                            {/* URL & IP */}
+                                            <TableCell>
+                                                <div className="font-mono text-sm text-zinc-800 dark:text-zinc-200 truncate max-w-[250px] lg:max-w-md">
+                                                    {log.url.replace(window.location.origin, '')}
+                                                </div>
+                                                <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                                                    <Globe className="w-3 h-3" /> {log.ip_address}
                                                 </div>
                                             </TableCell>
 
                                             {/* User */}
                                             <TableCell>
                                                 {log.user ? (
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[10px]">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[10px]">
                                                             {log.user.name.charAt(0)}
                                                         </div>
-                                                        <span className="font-semibold text-sm">{log.user.name}</span>
+                                                        <span className="font-medium text-sm">{log.user.name}</span>
                                                     </div>
                                                 ) : (
-                                                    <span className="text-sm italic text-muted-foreground">System Generated</span>
+                                                    <span className="text-sm italic text-muted-foreground">Guest</span>
                                                 )}
                                             </TableCell>
 
-                                            {/* Action Badge */}
+                                            {/* Payload */}
                                             <TableCell>
-                                                {getActionBadge(log.action)}
-                                            </TableCell>
-
-                                            {/* Subject Type & ID */}
-                                            <TableCell>
-                                                {log.subject_type ? (
-                                                    <div className="flex items-center gap-2">
-                                                        <Database className="h-3.5 w-3.5 text-muted-foreground" />
-                                                        <span className="text-sm font-medium">{formatSubjectType(log.subject_type)}</span>
-                                                        <span className="text-xs text-muted-foreground">ID: {log.subject_id}</span>
+                                                {log.payload && Object.keys(log.payload).length > 0 ? (
+                                                    <div className="max-w-xs max-h-16 overflow-y-auto bg-zinc-100 dark:bg-zinc-900 rounded p-2 text-[10px] font-mono text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800">
+                                                        <pre>{JSON.stringify(typeof log.payload === 'string' ? JSON.parse(log.payload) : log.payload, null, 2)}</pre>
                                                     </div>
                                                 ) : (
-                                                    <span className="text-sm text-muted-foreground">-</span>
+                                                    <span className="text-muted-foreground text-xs italic">No payload</span>
                                                 )}
                                             </TableCell>
 
-                                            {/* Optional Details (e.g. JSON diff) */}
-                                            <TableCell className="text-right pr-6 text-xs text-muted-foreground max-w-[200px] truncate">
-                                                {log.data_after ? (
-                                                    <span
-                                                        title={`Before: ${log.data_before}\nAfter: ${log.data_after}`}
-                                                        className="cursor-help border-b border-dashed border-muted-foreground/50 pb-0.5"
-                                                    >
-                                                        View Data
+                                            {/* Performance & Time */}
+                                            <TableCell className="text-right pr-6">
+                                                <div className="flex items-center justify-end gap-1 text-sm font-medium">
+                                                    <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                                                    <span className={log.duration_ms > 1000 ? "text-red-500" : log.duration_ms > 500 ? "text-amber-500" : "text-emerald-500"}>
+                                                        {log.duration_ms} ms
                                                     </span>
-                                                ) : '-'}
+                                                </div>
+                                                <div className="text-xs text-muted-foreground mt-1">
+                                                    {formatDate(log.created_at)}
+                                                </div>
                                             </TableCell>
+
                                         </TableRow>
                                     ))
                                 )}
